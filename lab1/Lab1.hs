@@ -68,7 +68,7 @@ test_powers n k = and [prop_powers f s | (f,s) <- testCases n k]
 
 --D
 
--- We do not allow negative numbers for the power functions,
--- thus we need to take the absolute value for each n and k.
+-- We do not allow negative k's for the power functions,
+-- thus we need to take the absolute value for k
 prop_powers' :: Integer -> Integer -> Bool
 prop_powers' n k = prop_powers n (abs k)
