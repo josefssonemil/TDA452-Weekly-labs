@@ -1,4 +1,4 @@
-import QuickCheck
+import Test.QuickCheck
 
 -- Part 1
 
