@@ -1,4 +1,4 @@
-import Test.QuickCheck
+import QuickCheck
 
 -- Part 1
 
@@ -16,13 +16,14 @@ power n k = n * power n (k-1)
 
 
 -- Part 2
--- Uses the function product on a list containing n k times. Throws error if 
+-- Uses the function product on a list containing n k times. Throws error if
 -- k is negative
 
 power1 :: Integer -> Integer -> Integer
 power1 n k | k < 0 = error "power: negative argument"
 power1 n 0 = 1
-power1 n k = product (replicate (fromIntegral k) n)
+--power1 n k = product (replicate (fromIntegral k) n)
+power1 n k = product $ replicate (fromIntegral k) n
 
 
 -- Part 3
@@ -32,16 +33,16 @@ power1 n k = product (replicate (fromIntegral k) n)
 --n^k = (n^2)^k/2 (k even)
 --n^k = n * (n^k-1) (k odd)
 
-power2 :: Integer -> Integer -> Integer 
+power2 :: Integer -> Integer -> Integer
 power2 n k | k < 0 = error "power: negative argument"
 power2 n 0  = 1
-power2 n k = if even k then power2 (n*n) (div k 2) 
-                            else (n * (power2 n (k-1)))    
+power2 n k = if even k then power2 (n * n) (div k 2)
+                            else n * power2 n (k - 1)
 
 -- Part 4
 
 -- A
--- Test cases: k = 0, n = 0 & k = Integer, n = 0 & k = 0, n = integer & 
+-- Test cases: k = 0, n = 0 & k = Integer, n = 0 & k = 0, n = integer &
 -- k = integer, n = integer
 
 -- These test cases will cover all possible inputs and will make sure
@@ -52,17 +53,22 @@ power2 n k = if even k then power2 (n*n) (div k 2)
 -- Property function for all three different implementations of the
 -- power function
 
-prop_powers n k = (power n k) == (power1 n k) && (power n k) == (power2 n k)
+
+prop_powers :: Integer -> Integer -> Bool
+prop_powers n k = power n k == power1 n k && power n k == power2 n k
 
 -- C
--- Tuple list with all test cases from A, test_powers will test all cases
+-- Helper function generating all possible test cases we declared in part A
+testCases :: Integer -> Integer -> [(Integer, Integer)]
 testCases n k = [(0,0), (n,0), (0,k), (n,k)]
-test_powers n k = [prop_powers (fst x) (snd x) | x <- testCases n k]
+
+-- Tests all cases generated from function testCases
+test_powers :: Integer -> Integer -> Bool
+test_powers n k = and [prop_powers f s | (f,s) <- testCases n k]
 
 --D
 
 -- We do not allow negative numbers for the power functions,
 -- thus we need to take the absolute value for each n and k.
-prop_powers' n k = (power (abs n) (abs k)) == (power1 (abs n) (abs k))
- && (power (abs n) (abs k)) == (power2 (abs n) (abs k))
-
+prop_powers' :: Integer -> Integer -> Bool
+prop_powers' n k = prop_powers n (abs k)
