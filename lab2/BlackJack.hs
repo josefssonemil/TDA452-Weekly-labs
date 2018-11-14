@@ -59,3 +59,36 @@ winner handG handB
       21 - value handG < 21 - value handB     = Guest
       | value handB > 21 && value handG <= 21 = Guest
       | otherwise                             = Bank
+
+--B1
+
+-- example hands for testing:
+-- (Add (Card (Numeric 2) Hearts)(Add (Card Jack Spades) Empty))
+-- (Add (Card Jack Spades)(Add (Card (Numeric 4) Diamonds) Empty))
+
+--Takes two hands and places the first one on top of the other hand
+--Takes the secoond hand and then via recursion places the casrds from the other hand
+-- on top. 
+(<+) :: Hand -> Hand -> Hand
+(<+) h1 Empty = h1
+(<+) Empty h2 = h2
+(<+) (Add card hand) h2 = (Add card (hand <+ h2)) -- then  hand <+ h2 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
