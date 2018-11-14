@@ -69,10 +69,33 @@ winner handG handB
 --Takes two hands and places the first one on top of the other hand
 --Takes the secoond hand and then via recursion places the casrds from the other hand
 -- on top. 
+
+--passes the tests below if done by hand, quickcheck did not want to work
 (<+) :: Hand -> Hand -> Hand
 (<+) h1 Empty = h1
 (<+) Empty h2 = h2
 (<+) (Add card hand) h2 = (Add card (hand <+ h2)) -- then  hand <+ h2 
+
+-- Test calss from the lab directions
+prop_onTopOf_assoc :: Hand -> Hand -> Hand -> Bool
+prop_onTopOf_assoc p1 p2 p3 =
+    p1<+(p2<+p3) == (p1<+p2)<+p3
+
+-- Test to see if size is corerct after <+ function
+-- uses size from cards class
+prop_size_onTopOf :: Hand -> Hand -> Bool
+prop_size_onTopOf h1 h2 = size h1 + size h2 == size (h1 <+ h2)
+
+
+
+
+
+
+
+
+
+
+
 
 
 
