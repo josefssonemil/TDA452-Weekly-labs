@@ -67,10 +67,12 @@ winner handG handB
 -- (Add (Card Jack Spades)(Add (Card (Numeric 4) Diamonds) Empty))
 
 --Takes two hands and places the first one on top of the other hand
---Takes the secoond hand and then via recursion places the casrds from the other hand
+--Takes the secoond hand and then via recursion places the cards
+--from the other hand
 -- on top. 
 
---passes the tests below if done by hand, quickcheck did not want to work
+--passes the tests below if done by hand, quickcheck did not want 
+--to work
 (<+) :: Hand -> Hand -> Hand
 (<+) h1 Empty = h1
 (<+) Empty h2 = h2
@@ -86,7 +88,26 @@ prop_onTopOf_assoc p1 p2 p3 =
 prop_size_onTopOf :: Hand -> Hand -> Bool
 prop_size_onTopOf h1 h2 = size h1 + size h2 == size (h1 <+ h2)
 
+--B2
 
+--Returns fulldeck in a Hand
+fullDeck :: Hand
+fullDeck = allSuit Spades <+ allSuit Diamonds <+ allSuit Hearts
+                        <+ allSuit Clubs
+
+--Return all cards woth the specified rank. I bit hardcoded way. Could not find a better way though
+allSuit :: Suit -> Hand
+allSuit s = Empty <++ (Numeric 2,s) <++ (Numeric 3,s) 
+                  <++ (Numeric 4,s) <++ (Numeric 5,s) 
+                  <++ (Numeric 6,s) <++ (Numeric 7,s) 
+                  <++ (Numeric 8,s) <++ (Numeric 9,s) 
+                  <++ (Numeric 10,s) <++ (Jack,s) 
+                  <++ (Queen,s) <++ (King,s) <++ (Ace,s)
+ 
+--Simple operator for adding a single card to clean up the allSuit
+--function
+(<++) :: Hand -> (Rank,Suit) -> Hand
+(<++) h (r,s) = Add (Card r s) h   
 
 
 
