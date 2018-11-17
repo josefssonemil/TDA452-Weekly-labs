@@ -109,9 +109,11 @@ allSuit s = Empty <++ (Numeric 2,s) <++ (Numeric 3,s)
 (<++) :: Hand -> (Rank,Suit) -> Hand
 (<++) h (r,s) = Add (Card r s) h   
 
-
-
-
+--B3
+--tested a few cases and seems to work
+draw :: Hand -> Hand -> (Hand,Hand)
+draw Empty hand = (Empty,hand)
+draw (Add card deck) hand = (deck,(Add card hand))
 
 
 
