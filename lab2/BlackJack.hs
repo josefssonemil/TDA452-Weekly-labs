@@ -110,12 +110,26 @@ allSuit s = Empty <++ (Numeric 2,s) <++ (Numeric 3,s)
 (<++) h (r,s) = Add (Card r s) h   
 
 --B3
+--TODO: Error handling
 --tested a few cases and seems to work
 draw :: Hand -> Hand -> (Hand,Hand)
 draw Empty hand = (Empty,hand)
 draw (Add card deck) hand = (deck,(Add card hand))
 
 
+--B4
+--given a deck play for the bank assuming empty starting hand
+playBank :: Hand -> Hand
+playBank deck = snd (playBank' deck empty)
+
+--takes a deck and a hand and draws a card from deck to hand
+--then checks if value is 16 or over. if not then repeat
+playBank' :: Hand -> Hand -> (Hand,Hand)
+playBank' deck bankHand = if value bankHand' >= 16 then
+                        (deck',bankHand')
+                        else playBank' deck' bankHand'  
+    where (deck', bankHand') = draw deck bankHand
+    
 
 
 
