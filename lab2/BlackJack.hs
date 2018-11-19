@@ -1,6 +1,8 @@
 module BlackJack where
 import Cards
 import RunGame
+import Test.QuickCheck hiding (shuffle)
+import System.Random
 
 -- A0
 -- Hand2 consists of Hearts 2 and Spades Jack + empty , which gives
@@ -69,14 +71,14 @@ winner handG handB
 --Takes two hands and places the first one on top of the other hand
 --Takes the secoond hand and then via recursion places the cards
 --from the other hand
--- on top. 
+-- on top.
 
---passes the tests below if done by hand, quickcheck did not want 
+--passes the tests below if done by hand, quickcheck did not want
 --to work
 (<+) :: Hand -> Hand -> Hand
 (<+) h1 Empty = h1
 (<+) Empty h2 = h2
-(<+) (Add card hand) h2 = (Add card (hand <+ h2)) -- then  hand <+ h2 
+(<+) (Add card hand) h2 = (Add card (hand <+ h2)) -- then  hand <+ h2
 
 -- Test calss from the lab directions
 prop_onTopOf_assoc :: Hand -> Hand -> Hand -> Bool
@@ -97,17 +99,17 @@ fullDeck = allSuit Spades <+ allSuit Diamonds <+ allSuit Hearts
 
 --Return all cards woth the specified rank. I bit hardcoded way. Could not find a better way though
 allSuit :: Suit -> Hand
-allSuit s = Empty <++ (Numeric 2,s) <++ (Numeric 3,s) 
-                  <++ (Numeric 4,s) <++ (Numeric 5,s) 
-                  <++ (Numeric 6,s) <++ (Numeric 7,s) 
-                  <++ (Numeric 8,s) <++ (Numeric 9,s) 
-                  <++ (Numeric 10,s) <++ (Jack,s) 
+allSuit s = Empty <++ (Numeric 2,s) <++ (Numeric 3,s)
+                  <++ (Numeric 4,s) <++ (Numeric 5,s)
+                  <++ (Numeric 6,s) <++ (Numeric 7,s)
+                  <++ (Numeric 8,s) <++ (Numeric 9,s)
+                  <++ (Numeric 10,s) <++ (Jack,s)
                   <++ (Queen,s) <++ (King,s) <++ (Ace,s)
- 
+
 --Simple operator for adding a single card to clean up the allSuit
 --function
 (<++) :: Hand -> (Rank,Suit) -> Hand
-(<++) h (r,s) = Add (Card r s) h   
+(<++) h (r,s) = Add (Card r s) h
 
 --B3
 --TODO: Error handling
@@ -127,28 +129,38 @@ playBank deck = snd (playBank' deck empty)
 playBank' :: Hand -> Hand -> (Hand,Hand)
 playBank' deck bankHand = if value bankHand' >= 16 then
                         (deck',bankHand')
-                        else playBank' deck' bankHand'  
+                        else playBank' deck' bankHand'
     where (deck', bankHand') = draw deck bankHand
-    
+
+--B5
+shuffle :: StdGen -> Hand -> Hand
+shuffle g deck = if size deck == 0 then deck'
+                 else shuffle g deck
+
+  where deck' = (Add (fst (removeCard g deck)) deck')
+
+
+removeCard :: StdGen -> Hand -> (Card, Hand)
+removeCard g deck = getCard n1 deck
+    where (n1 , g1) = randomR (0,51) g
+
+getCard :: Integer -> Hand -> (Card,Hand)
+getCard n (Add card hand) = if n == 0 then (card,hand) else getCard (n - 1) hand
 
 
 
+--Helper function given in assignment, returns true if card
+-- is in hand.
+belongsTo :: Card -> Hand -> Bool
+c `belongsTo` Empty = False
+c `belongsTo` (Add c' h) = c == c' || c `belongsTo` h
 
+-- Property for shuffle function, makes sure no cards are missing after
+-- shuffle.
+prop_shuffle_sameCards :: StdGen -> Card -> Hand -> Bool
+prop_shuffle_sameCards g c h =
+    c `belongsTo` h == c `belongsTo` shuffle g h
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+-- Property for shuffle function, makes sure that the size is preserved
+--prop_size_shuffle :: StdGen -> Hand -> Bool
+--prop_size_shuffle =
