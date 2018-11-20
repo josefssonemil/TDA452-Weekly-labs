@@ -133,19 +133,33 @@ playBank' deck bankHand = if value bankHand' >= 16 then
     where (deck', bankHand') = draw deck bankHand
 
 --B5
+--shuffles a hand
 shuffle :: StdGen -> Hand -> Hand
-shuffle g deck = if size deck == 0 then deck'
-                 else shuffle g deck
+shuffle g Empty = Empty
+shuffle g deck = snd (shuffleHelper g (deck,empty))
 
-  where deck' = (Add (fst (removeCard g deck)) deck')
+--Helper function for shuffle. Moves all cards from first hand
+-- to the second hand in random order
+-- first retrives card nr random from the first hand, and then places
+-- it at the bottom of the second hand. continues untill the first
+-- hand is empty
+shuffleHelper :: StdGen -> (Hand,Hand) -> (Hand,Hand)
+shuffleHelper g (h1,h2) = if h1' == empty then (h1' , (Add c1' h2)) 
+                          else shuffleHelper g' (h1' , (Add c1' h2))
+    where (n , g') = randomR (0,(size h1 - 1)) g
+          (c1',h1') = getCard n h1 
 
 
-removeCard :: StdGen -> Hand -> (Card, Hand)
-removeCard g deck = getCard n1 deck
-    where (n1 , g1) = randomR (0,51) g
-
+--get card dosent seem to be the problem. tested
+--retrives a card that is integer number from the top
+--basically in order to not remove other cards the hole hand "shifts"
+--integer many times and then returns the hand and card
 getCard :: Integer -> Hand -> (Card,Hand)
-getCard n (Add card hand) = if n == 0 then (card,hand) else getCard (n - 1) hand
+getCard n Empty = error "getCard: empty deck"
+getCard n hand | n<0 || n> size hand = error "getCard: forbidden n"
+getCard n (Add card hand) | otherwise = if n == 0 then (card,hand)
+                            else getCard (n-1) (hand 
+                                 <+ (Add card Empty))
 
 
 
@@ -155,12 +169,13 @@ belongsTo :: Card -> Hand -> Bool
 c `belongsTo` Empty = False
 c `belongsTo` (Add c' h) = c == c' || c `belongsTo` h
 
--- Property for shuffle function, makes sure no cards are missing after
--- shuffle.
+-- Property for shuffle function, makes sure no cards 
+-- are missing after shuffle.
 prop_shuffle_sameCards :: StdGen -> Card -> Hand -> Bool
 prop_shuffle_sameCards g c h =
     c `belongsTo` h == c `belongsTo` shuffle g h
 
--- Property for shuffle function, makes sure that the size is preserved
---prop_size_shuffle :: StdGen -> Hand -> Bool
---prop_size_shuffle =
+-- Property for shuffle function,
+-- makes sure that the size is preserved
+prop_size_shuffle :: StdGen -> Hand -> Bool
+prop_size_shuffle g hand = size hand == (size $ shuffle g hand)
