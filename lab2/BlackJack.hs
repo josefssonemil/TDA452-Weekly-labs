@@ -59,29 +59,18 @@ winner handG handB | gameOver handG                      = Bank
                    | gameOver handB                      = Guest
                    | 21 - value handG < 21 - value handB = Guest
                    | otherwise                           = Bank
---winner handG handB
---      | value handG <= 21 &&
---      21 - value handG < 21 - value handB     = Guest
---      | value handB > 21 && value handG <= 21 = Guest
---      | otherwise                             = Bank
+
 
 --B1
-
--- example hands for testing:
--- (Add (Card (Numeric 2) Hearts)(Add (Card Jack Spades) Empty))
--- (Add (Card Jack Spades)(Add (Card (Numeric 4) Diamonds) Empty))
-
 --Takes two hands and places the first one on top of the other hand
 --Takes the secoond hand and then via recursion places the cards
 --from the other hand
 -- on top.
 
---passes the tests below if done by hand, quickcheck did not want
---to work
 (<+) :: Hand -> Hand -> Hand
 (<+) h1 Empty = h1
 (<+) Empty h2 = h2
-(<+) (Add card hand) h2 = (Add card (hand <+ h2)) -- then  hand <+ h2
+(<+) (Add card hand) h2 = Add card (hand <+ h2)
 
 -- Property function, checks if (<+) operator is associative
 prop_onTopOf_assoc :: Hand -> Hand -> Hand -> Bool
@@ -109,17 +98,18 @@ allSuit s = Empty <++ (Numeric 2,s) <++ (Numeric 3,s)
                   <++ (Numeric 10,s) <++ (Jack,s)
                   <++ (Queen,s) <++ (King,s) <++ (Ace,s)
 
+
 --Simple operator for adding a single card to clean up the allSuit
 --function
 (<++) :: Hand -> (Rank,Suit) -> Hand
 (<++) h (r,s) = Add (Card r s) h
 
 --B3
---TODO: Error handling
---tested a few cases and seems to work
+-- First input is Deck, second is the Hand.
+-- Function draws the top card from the deck, places in the hand.
 draw :: Hand -> Hand -> (Hand,Hand)
-draw Empty hand = (Empty,hand)
-draw (Add card deck) hand = (deck,(Add card hand))
+draw Empty hand = error "draw: The deck is empty."
+draw (Add card deck) hand = (deck, Add card hand)
 
 
 --B4
@@ -144,20 +134,20 @@ shuffle :: StdGen -> Hand -> Hand
 shuffle g Empty = Empty
 shuffle g deck = snd (shuffleHelper g (deck,empty))
 
---Helper function for shuffle. Moves all cards from first hand
--- to the second hand in random order
--- first retrives card nr random from the first hand, and then places
--- it at the bottom of the second hand. continues untill the first
--- hand is empty
+-- Helper function for shuffle. Moves all cards from first hand
+-- to the second hand in random order.
+-- First retrieves card number random from the first hand, and then places
+-- it at the bottom of the second hand. Continues until the first hand
+-- is empty
 shuffleHelper :: StdGen -> (Hand,Hand) -> (Hand,Hand)
-shuffleHelper g (h1,h2) = if h1' == empty then (h1' , (Add c1' h2))
-                          else shuffleHelper g' (h1' , (Add c1' h2))
-    where (n , g') = randomR (0, (size h1 - 1)) g
+shuffleHelper g (h1,h2) = if h1' == empty then (h1' , Add c1' h2)
+                          else shuffleHelper g' (h1' , Add c1' h2)
+    where (n , g') = randomR (0, size h1 - 1) g
           (c1', h1') = getCard n h1
 
 
---get card dosent seem to be the problem. tested
---retrives a card that is integer number from the top
+
+--Retrieves a card that is integer number from the top
 --basically in order to not remove other cards the hole hand "shifts"
 --integer many times and then returns the hand and card
 getCard :: Integer -> Hand -> (Card,Hand)
@@ -165,7 +155,7 @@ getCard n Empty = error "getCard: empty deck"
 getCard n hand | n < 0 || n > size hand = error "getCard: forbidden n"
 getCard n (Add card hand) = if n == 0 then (card,hand)
                             else getCard (n - 1) (hand
-                                 <+ (Add card Empty))
+                                 <+ Add card Empty)
 
 
 
@@ -184,7 +174,7 @@ prop_shuffle_sameCards g c h =
 -- Property for shuffle function,
 -- makes sure that the size is preserved
 prop_size_shuffle :: StdGen -> Hand -> Bool
-prop_size_shuffle g hand = size hand == (size $ shuffle g hand)
+prop_size_shuffle g hand = size hand == size (shuffle g hand)
 
 -- B6
 implementation = Interface
