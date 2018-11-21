@@ -79,13 +79,13 @@ winner handG handB
 (<+) Empty h2 = h2
 (<+) (Add card hand) h2 = (Add card (hand <+ h2)) -- then  hand <+ h2
 
--- Test calss from the lab directions
+-- Property function, checks if (<+) operator is associative
 prop_onTopOf_assoc :: Hand -> Hand -> Hand -> Bool
 prop_onTopOf_assoc p1 p2 p3 =
     p1<+(p2<+p3) == (p1<+p2)<+p3
 
--- Test to see if size is corerct after <+ function
--- uses size from cards class
+-- Property function, checks that the size after adding two hands is
+-- equal to the size when using the (<+) function
 prop_size_onTopOf :: Hand -> Hand -> Bool
 prop_size_onTopOf h1 h2 = size h1 + size h2 == size (h1 <+ h2)
 
@@ -96,7 +96,7 @@ fullDeck :: Hand
 fullDeck = allSuit Spades <+ allSuit Diamonds <+ allSuit Hearts
                         <+ allSuit Clubs
 
---Return all cards woth the specified rank. I bit hardcoded way. Could not find a better way though
+--Return all cards with the given rank
 allSuit :: Suit -> Hand
 allSuit s = Empty <++ (Numeric 2,s) <++ (Numeric 3,s)
                   <++ (Numeric 4,s) <++ (Numeric 5,s)
@@ -119,20 +119,23 @@ draw (Add card deck) hand = (deck,(Add card hand))
 
 
 --B4
---given a deck play for the bank assuming empty starting hand
+-- Plays for the bank, given a hand and assuming initial hand is empty.
+-- Returns the bank's final hand
 playBank :: Hand -> Hand
 playBank deck = snd (playBank' deck empty)
 
---takes a deck and a hand and draws a card from deck to hand
---then checks if value is 16 or over. if not then repeat
+-- Helper function for playBank. Takes a deck and a hand, draws a card from
+-- the deck to the hand and checks if value is 16 or over, repeats if it's
+-- not.
+
 playBank' :: Hand -> Hand -> (Hand,Hand)
 playBank' deck bankHand = if value bankHand' >= 16 then
                         (deck',bankHand')
                         else playBank' deck' bankHand'
     where (deck', bankHand') = draw deck bankHand
 
---B5
---shuffles a hand
+-- B5
+-- Shuffles a hand
 shuffle :: StdGen -> Hand -> Hand
 shuffle g Empty = Empty
 shuffle g deck = snd (shuffleHelper g (deck,empty))
@@ -145,8 +148,8 @@ shuffle g deck = snd (shuffleHelper g (deck,empty))
 shuffleHelper :: StdGen -> (Hand,Hand) -> (Hand,Hand)
 shuffleHelper g (h1,h2) = if h1' == empty then (h1' , (Add c1' h2))
                           else shuffleHelper g' (h1' , (Add c1' h2))
-    where (n , g') = randomR (0,(size h1 - 1)) g
-          (c1',h1') = getCard n h1
+    where (n , g') = randomR (0, (size h1 - 1)) g
+          (c1', h1') = getCard n h1
 
 
 --get card dosent seem to be the problem. tested
@@ -155,9 +158,9 @@ shuffleHelper g (h1,h2) = if h1' == empty then (h1' , (Add c1' h2))
 --integer many times and then returns the hand and card
 getCard :: Integer -> Hand -> (Card,Hand)
 getCard n Empty = error "getCard: empty deck"
-getCard n hand | n<0 || n> size hand = error "getCard: forbidden n"
-getCard n (Add card hand) | otherwise = if n == 0 then (card,hand)
-                            else getCard (n-1) (hand
+getCard n hand | n < 0 || n > size hand = error "getCard: forbidden n"
+getCard n (Add card hand) = if n == 0 then (card,hand)
+                            else getCard (n - 1) (hand
                                  <+ (Add card Empty))
 
 
@@ -179,7 +182,7 @@ prop_shuffle_sameCards g c h =
 prop_size_shuffle :: StdGen -> Hand -> Bool
 prop_size_shuffle g hand = size hand == (size $ shuffle g hand)
 
---b6
+-- B6
 implementation = Interface
   { iEmpty    = empty
   , iFullDeck = fullDeck
