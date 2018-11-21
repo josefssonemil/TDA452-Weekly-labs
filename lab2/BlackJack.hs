@@ -55,11 +55,15 @@ gameOver hand = 21 < value hand
 -- We check this by finding the win conditions for the Guest, and if those
 -- are not fulfilled, the bank wins
 winner :: Hand -> Hand -> Player
-winner handG handB
-      | value handG <= 21 &&
-      21 - value handG < 21 - value handB     = Guest
-      | value handB > 21 && value handG <= 21 = Guest
-      | otherwise                             = Bank
+winner handG handB | gameOver handG                      = Bank
+                   | gameOver handB                      = Guest
+                   | 21 - value handG < 21 - value handB = Guest
+                   | otherwise                           = Bank
+--winner handG handB
+--      | value handG <= 21 &&
+--      21 - value handG < 21 - value handB     = Guest
+--      | value handB > 21 && value handG <= 21 = Guest
+--      | otherwise                             = Bank
 
 --B1
 
