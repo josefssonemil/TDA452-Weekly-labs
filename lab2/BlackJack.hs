@@ -18,17 +18,16 @@ empty = Empty
 -- It computes the initial value, and then the initial value by checking
 -- if the initial value is larger than 21.
 value :: Hand -> Integer
-value hand = if valueWithValueOfAce 11 hand <= 21
-             then valueWithValueOfAce 11 hand
-             else valueWithValueOfAce 1 hand
+value hand = if normalVal <= 21 then normalVal else valueWithValueOfAce 1 hand
+  where normalVal = valueWithValueOfAce 11 hand
 
 
 -- Checks the hand recursively by taking a card, finding its value and then
 -- continues with the hand until empty
 valueWithValueOfAce :: Integer -> Hand -> Integer
 valueWithValueOfAce aV Empty = 0
-valueWithValueOfAce aV (Add card hand) = (valueCard aV card) +
-                       (valueWithValueOfAce aV hand)
+valueWithValueOfAce aV (Add card hand) = valueCard aV card +
+                       valueWithValueOfAce aV hand
 
 -- Returns the value of a rank
 valueRank :: Integer -> Rank -> Integer
@@ -144,10 +143,10 @@ shuffle g deck = snd (shuffleHelper g (deck,empty))
 -- it at the bottom of the second hand. continues untill the first
 -- hand is empty
 shuffleHelper :: StdGen -> (Hand,Hand) -> (Hand,Hand)
-shuffleHelper g (h1,h2) = if h1' == empty then (h1' , (Add c1' h2)) 
+shuffleHelper g (h1,h2) = if h1' == empty then (h1' , (Add c1' h2))
                           else shuffleHelper g' (h1' , (Add c1' h2))
     where (n , g') = randomR (0,(size h1 - 1)) g
-          (c1',h1') = getCard n h1 
+          (c1',h1') = getCard n h1
 
 
 --get card dosent seem to be the problem. tested
@@ -158,7 +157,7 @@ getCard :: Integer -> Hand -> (Card,Hand)
 getCard n Empty = error "getCard: empty deck"
 getCard n hand | n<0 || n> size hand = error "getCard: forbidden n"
 getCard n (Add card hand) | otherwise = if n == 0 then (card,hand)
-                            else getCard (n-1) (hand 
+                            else getCard (n-1) (hand
                                  <+ (Add card Empty))
 
 
@@ -169,7 +168,7 @@ belongsTo :: Card -> Hand -> Bool
 c `belongsTo` Empty = False
 c `belongsTo` (Add c' h) = c == c' || c `belongsTo` h
 
--- Property for shuffle function, makes sure no cards 
+-- Property for shuffle function, makes sure no cards
 -- are missing after shuffle.
 prop_shuffle_sameCards :: StdGen -> Card -> Hand -> Bool
 prop_shuffle_sameCards g c h =
@@ -180,13 +179,13 @@ prop_shuffle_sameCards g c h =
 prop_size_shuffle :: StdGen -> Hand -> Bool
 prop_size_shuffle g hand = size hand == (size $ shuffle g hand)
 
---b6 
+--b6
 implementation = Interface
   { iEmpty    = empty
   , iFullDeck = fullDeck
   , iValue    = value
   , iGameOver = gameOver
-  , iWinner   = winner 
+  , iWinner   = winner
   , iDraw     = draw
   , iPlayBank = playBank
   , iShuffle  = shuffle
@@ -194,6 +193,3 @@ implementation = Interface
 
 main :: IO ()
 main = runGame implementation
-
-
-
