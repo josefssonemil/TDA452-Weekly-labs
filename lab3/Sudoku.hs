@@ -47,8 +47,9 @@ isSudoku (Sudoku matrix) = length matrix == 9 && length (matrix !! 0) == 9
 
 -- | isFilled sud checks if sud is completely filled in,
 -- i.e. there are no blanks
-isFilled :: Sudoku -> Bool
-isFilled = undefined
+isFilled :: Sudoku -> Bool 
+isFilled (Sudoku xs) =  not $ or [Nothing `elem` x | x <- xs ]    
+  
 
 -------------------------------------------------------------------------
 
