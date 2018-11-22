@@ -37,8 +37,11 @@ allBlankSudoku = Sudoku (replicate 9 $ replicate 9 n)
 
 -- | isSudoku sud checks if sud is really a valid representation of a sudoku
 -- puzzle
+--Passes all the examples but in reality only checks if matrix contains
+--9 lists and that the first list in matrix aslo has 9 elements
 isSudoku :: Sudoku -> Bool
-isSudoku = undefined
+isSudoku (Sudoku matrix) = length matrix == 9 && length (matrix !! 0) == 9    
+
 
 -- * A3
 
