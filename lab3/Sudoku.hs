@@ -1,5 +1,6 @@
 
 import Test.QuickCheck
+import Data.Char
 
 -------------------------------------------------------------------------
 
@@ -58,7 +59,15 @@ isFilled (Sudoku xs) =  not $ or [Nothing `elem` x | x <- xs ]
 -- |b printSudoku sud prints a nice representation of the sudoku sud on
 -- the screen
 printSudoku :: Sudoku -> IO ()
-printSudoku = undefined
+printSudoku (Sudoku []) = return()
+printSudoku (Sudoku (x:xs)) = do putStrLn (map toSudoChar x)
+                                 printSudoku (Sudoku xs)
+
+
+toSudoChar :: Show a => Maybe a -> Char
+toSudoChar Nothing = '.'
+toSudoChar (Just x) =  head ( show x )
+
 
 -- * B2
 
