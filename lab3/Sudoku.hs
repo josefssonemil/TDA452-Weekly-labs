@@ -74,7 +74,18 @@ toSudoChar (Just x) =  head ( show x )
 -- | readSudoku file reads from the file, and either delivers it, or stops
 -- if the file did not contain a sudoku
 readSudoku :: FilePath -> IO Sudoku
-readSudoku = undefined
+readSudoku filepath = do  text <- readFile filepath
+                          return (helperReadSudoku text)
+                         
+helperReadSudoku :: String -> Sudoku
+helperReadSudoku string = Sudoku [[convertToMaybe (((lines string) !! y)
+                                                                   !! x)
+                                 | x <- [0..8] ] | y <- [0..8] ]
+
+
+convertToMaybe :: Char -> Maybe Int
+convertToMaybe '.' = Nothing
+convertToMaybe c = Just (digitToInt c) 
 
 -------------------------------------------------------------------------
 
