@@ -1,6 +1,7 @@
 
 import Test.QuickCheck
 import Data.Char
+import Data.List
 
 -------------------------------------------------------------------------
 
@@ -41,11 +42,11 @@ allBlankSudoku = Sudoku (replicate 9 $ replicate 9 n)
 --Passes all the examples but in reality only checks if matrix contains
 --9 lists and that the first list in matrix aslo has 9 elements
 isSudoku :: Sudoku -> Bool
-isSudoku (Sudoku matrix) = length matrix == 9 && isSudo' 0 matrix 
+isSudoku (Sudoku matrix) = length matrix == 9 && isSudo' 0 matrix
 
 isSudo' :: Int -> [[Maybe Int]] -> Bool
 isSudo' 8 matrix = length (matrix !! 8) == 9
-isSudo' n matrix = length (matrix !! n) == 9 && isSudo' (n+1) matrix  
+isSudo' n matrix = length (matrix !! n) == 9 && isSudo' (n+1) matrix
 
 
 -- * A3
@@ -132,8 +133,9 @@ type Block = [Maybe Int]
 -- * D1
 
 isOkayBlock :: Block -> Bool
-isOkayBlock = undefined
+isOkayBlock block = length (nub block') == length block'
 
+      where block' = filter (/=Nothing) block
 
 -- * D2
 
