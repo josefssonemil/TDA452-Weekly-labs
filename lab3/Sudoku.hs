@@ -58,15 +58,22 @@ isFilled (Sudoku xs) =  not $ or [Nothing `elem` x | x <- xs ]
 
 -- |b printSudoku sud prints a nice representation of the sudoku sud on
 -- the screen
+-- does nothing if not valid sudoku 
 printSudoku :: Sudoku -> IO ()
-printSudoku (Sudoku []) = return()
-printSudoku (Sudoku (x:xs)) = do putStrLn (map toSudoChar x)
-                                 printSudoku (Sudoku xs)
+printSudoku sudo | not $ isSudoku sudo = return()
+printSudoku sudo | otherwise = printSudoku' sudo
 
+--helper function. Prints the sudoku recursivly
+printSudoku' :: Sudoku -> IO ()
+printSudoku' (Sudoku []) = return ()
+printSudoku' (Sudoku (x:xs)) = do { putStrLn (map toSudoChar x)
+                          ;printSudoku' (Sudoku xs) }
 
-toSudoChar :: Show a => Maybe a -> Char
+--Takes a Maybe and outputs a char. A simple '.' if nothing 
+-- otherwise its value
+toSudoChar :: Maybe Int -> Char
 toSudoChar Nothing = '.'
-toSudoChar (Just x) =  head ( show x )
+toSudoChar (Just x) =  intToDigit x
 
 
 -- * B2
@@ -76,13 +83,15 @@ toSudoChar (Just x) =  head ( show x )
 readSudoku :: FilePath -> IO Sudoku
 readSudoku filepath = do  text <- readFile filepath
                           return (helperReadSudoku text)
-                         
+
+-- Helper function for readSudoku
+-- Creates the [[Maybe Int]] matrix from the text   
 helperReadSudoku :: String -> Sudoku
-helperReadSudoku string = Sudoku [[convertToMaybe (((lines string) !! y)
-                                                                   !! x)
-                                 | x <- [0..8] ] | y <- [0..8] ]
+helperReadSudoku string = Sudoku [[convertToMaybe (((lines string) !! y)!! x)
+                                 | x <- [0..8] ] 
+                                 | y <- [0..8] ]
 
-
+--Takes a char and translates it to a Maybe Int
 convertToMaybe :: Char -> Maybe Int
 convertToMaybe '.' = Nothing
 convertToMaybe c = Just (digitToInt c) 
