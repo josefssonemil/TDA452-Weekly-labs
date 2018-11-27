@@ -33,7 +33,7 @@ allBlankSudoku :: Sudoku
 allBlankSudoku = Sudoku (replicate 9 $ replicate 9 n)
   where n = Nothing
 
-  
+
 -- * A2
 
 -- | isSudoku sud checks if sud is really a valid representation of a sudoku
@@ -41,16 +41,16 @@ allBlankSudoku = Sudoku (replicate 9 $ replicate 9 n)
 --Passes all the examples but in reality only checks if matrix contains
 --9 lists and that the first list in matrix aslo has 9 elements
 isSudoku :: Sudoku -> Bool
-isSudoku (Sudoku matrix) = length matrix == 9 && length (matrix !! 0) == 9    
+isSudoku (Sudoku matrix) = length matrix == 9 && length (matrix !! 0) == 9
 
 
 -- * A3
 
 -- | isFilled sud checks if sud is completely filled in,
 -- i.e. there are no blanks
-isFilled :: Sudoku -> Bool 
-isFilled (Sudoku xs) =  not $ or [Nothing `elem` x | x <- xs ]    
-  
+isFilled :: Sudoku -> Bool
+isFilled (Sudoku xs) =  not $ or [Nothing `elem` x | x <- xs ]
+
 
 -------------------------------------------------------------------------
 
@@ -58,7 +58,7 @@ isFilled (Sudoku xs) =  not $ or [Nothing `elem` x | x <- xs ]
 
 -- |b printSudoku sud prints a nice representation of the sudoku sud on
 -- the screen
--- does nothing if not valid sudoku 
+-- does nothing if not valid sudoku
 printSudoku :: Sudoku -> IO ()
 printSudoku sudo | not $ isSudoku sudo = return()
 printSudoku sudo | otherwise = printSudoku' sudo
@@ -69,7 +69,7 @@ printSudoku' (Sudoku []) = return ()
 printSudoku' (Sudoku (x:xs)) = do { putStrLn (map toSudoChar x)
                           ;printSudoku' (Sudoku xs) }
 
---Takes a Maybe and outputs a char. A simple '.' if nothing 
+--Takes a Maybe and outputs a char. A simple '.' if nothing
 -- otherwise its value
 toSudoChar :: Maybe Int -> Char
 toSudoChar Nothing = '.'
@@ -85,16 +85,16 @@ readSudoku filepath = do  text <- readFile filepath
                           return (helperReadSudoku text)
 
 -- Helper function for readSudoku
--- Creates the [[Maybe Int]] matrix from the text   
+-- Creates the [[Maybe Int]] matrix from the text
 helperReadSudoku :: String -> Sudoku
 helperReadSudoku string = Sudoku [[convertToMaybe (((lines string) !! y)!! x)
-                                 | x <- [0..8] ] 
+                                 | x <- [0..8] ]
                                  | y <- [0..8] ]
 
 --Takes a char and translates it to a Maybe Int
 convertToMaybe :: Char -> Maybe Int
 convertToMaybe '.' = Nothing
-convertToMaybe c = Just (digitToInt c) 
+convertToMaybe c = Just (digitToInt c)
 
 -------------------------------------------------------------------------
 
@@ -111,5 +111,95 @@ instance Arbitrary Sudoku where
   arbitrary =
     do rows <- vectorOf 9 (vectorOf 9 cell)
        return (Sudoku rows)
+
+
+
+
+-- * C3
+
+prop_Sudoku :: Sudoku -> Bool
+prop_Sudoku = undefined
+
+------------------------------------------------------------------------------
+
+type Block = [Maybe Int]
+
+
+-- * D1
+
+isOkayBlock :: Block -> Bool
+isOkayBlock = undefined
+
+
+-- * D2
+
+blocks :: Sudoku -> [Block]
+blocks = undefined
+
+prop_blocks_lengths :: Sudoku -> Bool
+prop_blocks_lengths = undefined
+
+-- * D3
+
+isOkay :: Sudoku -> Bool
+isOkay = undefined
+
+
+---- Part A ends here --------------------------------------------------------
+------------------------------------------------------------------------------
+---- Part B starts here ------------------------------------------------------
+
+
+-- | Positions are pairs (row,column),
+-- (0,0) is top left corner, (8,8) is bottom left corner
+type Pos = (Int,Int)
+
+-- * E1
+
+blanks :: Sudoku -> [Pos]
+blanks = undefined
+
+--prop_blanks_allBlanks :: ...
+--prop_blanks_allBlanks =
+
+
+-- * E2
+
+(!!=) :: [a] -> (Int,a) -> [a]
+xs !!= (i,y) = undefined
+
+--prop_bangBangEquals_correct :: ...
+--prop_bangBangEquals_correct =
+
+
+-- * E3
+
+update :: Sudoku -> Pos -> Maybe Int -> Sudoku
+update = undefined
+
+--prop_update_updated :: ...
+--prop_update_updated =
+
+
+-- * E4
+
+candidates :: Sudoku -> Pos -> [Int]
+candidates = undefined
+
+--prop_candidates_correct :: ...
+--prop_candidates_correct =
+
+
+------------------------------------------------------------------------------
+
+-- * F1
+
+
+-- * F2
+
+-- * F3
+
+
+-- * F4
 
 -------------------------------------------------------------------------
