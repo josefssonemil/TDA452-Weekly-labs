@@ -134,30 +134,34 @@ type Block = [Maybe Int]
 
 isOkayBlock :: Block -> Bool
 isOkayBlock block = length (nub block') == length block'
-
       where block' = filter (/=Nothing) block
 
 -- * D2
 
 blocks :: Sudoku -> [Block]
-blocks sudo = blocks' sudo 0
+blocks (Sudoku matrix) = blocks' matrix
+--blocks sudo = (blocks' sudo 0) ++ (blocks' sudo 1) ++ (blocks' sudo 2)
 
 
-blocks' :: Sudoku -> Int -> [Block]
-blocks' _ 3 = []
-blocks' (Sudoku matrix) n = blockHelper matrix'
-    where matrix' = take 3 $ drop (0) matrix
+blocks' :: [[Maybe Int]] -> [Block]
+blocks' [] = []
+blocks' matrix = sortToBlocks headmatrix ++ blocks' tailmatrix
+    where headmatrix = take 3 matrix
+          tailmatrix = drop 3 matrix
 
-blockHelper :: [[Maybe Int]] -> [Block]
-blockHelper matrix = [[(matrix !! i) !! j | i <- [0..2]] | j <- [0..2]]
---blockHelper list = (list !! 0) <+ (list !! 1) <+ (list !! 2)
+--Sorts the matrix into blocks according to the layout of a sudoku
+sortToBlocks :: [[Maybe Int]] -> [Block]
+sortToBlocks [] = []
+sortToBlocks (list : matrix) = chunksOf 3 list <+ (sortToBlocks matrix)   
 
--- possibly could be improved to be more general
+
 -- adds two lists of same size, index by index
-(<+) :: [Block] -> [Block] -> [Block]
-(<+) b1 b2 | length b1 /= length b2 = error "different sizes"
+-- return lefthand side if not compatible
+(<+) :: [[a]] -> [[a]] -> [[a]]
+(<+) b1 b2 | length b1 /= length b2 = b1
 (<+) b1 b2 = [b1 !! i  ++ b2 !! i | i <- [0..n]]
     where n = (length b1) - 1
+
 
 prop_blocks_lengths :: Sudoku -> Bool
 prop_blocks_lengths = undefined
