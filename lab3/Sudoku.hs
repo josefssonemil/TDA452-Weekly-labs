@@ -162,9 +162,11 @@ sortToBlocks (list : matrix) = chunksOf 3 list <+ (sortToBlocks matrix)
 (<+) b1 b2 = [b1 !! i  ++ b2 !! i | i <- [0..n]]
     where n = (length b1) - 1
 
-
+--makes sure that all blocks contains nine cells and whole sudoku has
+--nine blocks. Also made my first lamda function :)
 prop_blocks_lengths :: Sudoku -> Bool
-prop_blocks_lengths = undefined
+prop_blocks_lengths sudo = length (filter (\x -> 9 == length x)  blocky) == 9 
+    where blocky = blocks sudo
 
 -- * D3
 
