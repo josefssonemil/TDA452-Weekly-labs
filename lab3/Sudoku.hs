@@ -102,9 +102,8 @@ convertToMaybe c = Just (digitToInt c)
 
 -- | cell generates an arbitrary cell in a Sudoku
 cell :: Gen (Maybe Int)
-cell = undefined
-
-
+cell = do n <- choose (1,9)
+          frequency [(9, return Nothing),(1, return (Just n))]
 -- * C2
 
 -- | an instance for generating Arbitrary Sudokus
