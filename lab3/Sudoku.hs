@@ -41,7 +41,11 @@ allBlankSudoku = Sudoku (replicate 9 $ replicate 9 n)
 --Passes all the examples but in reality only checks if matrix contains
 --9 lists and that the first list in matrix aslo has 9 elements
 isSudoku :: Sudoku -> Bool
-isSudoku (Sudoku matrix) = length matrix == 9 && length (matrix !! 0) == 9
+isSudoku (Sudoku matrix) = length matrix == 9 && isSudo' 0 matrix 
+
+isSudo' :: Int -> [[Maybe Int]] -> Bool
+isSudo' 8 matrix = length (matrix !! 8) == 9
+isSudo' n matrix = length (matrix !! n) == 9 && isSudo' (n+1) matrix  
 
 
 -- * A3
@@ -118,7 +122,7 @@ instance Arbitrary Sudoku where
 -- * C3
 
 prop_Sudoku :: Sudoku -> Bool
-prop_Sudoku = undefined
+prop_Sudoku sudo = isSudoku sudo
 
 ------------------------------------------------------------------------------
 
