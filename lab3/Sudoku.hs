@@ -152,7 +152,7 @@ blocks' matrix = sortToBlocks headmatrix ++ blocks' tailmatrix
 --Sorts the matrix into blocks according to the layout of a sudoku
 sortToBlocks :: [[Maybe Int]] -> [Block]
 sortToBlocks [] = []
-sortToBlocks (list : matrix) = chunksOf 3 list <+ (sortToBlocks matrix)
+sortToBlocks (list : matrix) = chunksOf 3 list <+ sortToBlocks matrix
 
 
 -- adds two lists of same size, index by index
@@ -160,7 +160,7 @@ sortToBlocks (list : matrix) = chunksOf 3 list <+ (sortToBlocks matrix)
 (<+) :: [[a]] -> [[a]] -> [[a]]
 (<+) b1 b2 | length b1 /= length b2 = b1
 (<+) b1 b2 = [b1 !! i  ++ b2 !! i | i <- [0..n]]
-    where n = (length b1) - 1
+    where n = length b1 - 1
 
 -- Makes sure that all blocks contains nine cells and whole sudoku has
 -- nine blocks
@@ -174,14 +174,14 @@ prop_blocks_lengths sudo = length (filter (\x -> 9 == length x)  blocky) == 9
 -- blocks
 isOkay :: Sudoku -> Bool
 isOkay (Sudoku matrix) = isColumsAndRowsOkay matrix
-                        && (and $ map isOkayBlock (blocks (Sudoku matrix)))
+                        && all isOkayBlock (blocks (Sudoku matrix))
 
 -- Checks that all rows and columns does not contain any duplicates
 -- using the IsOkayBlock function as it works not only for blocks but
 -- for all [Maybe Int] type aswell.
 isColumsAndRowsOkay :: [[Maybe Int]] -> Bool
-isColumsAndRowsOkay matrix =  and $ (map isOkayBlock matrix)
-                                 ++ (map isOkayBlock matrix')
+isColumsAndRowsOkay matrix =  and $ map isOkayBlock matrix
+                                 ++ map isOkayBlock matrix'
     where matrix' = transpose matrix
 
 
