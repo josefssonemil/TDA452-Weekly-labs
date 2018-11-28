@@ -162,16 +162,29 @@ sortToBlocks (list : matrix) = chunksOf 3 list <+ (sortToBlocks matrix)
 (<+) b1 b2 = [b1 !! i  ++ b2 !! i | i <- [0..n]]
     where n = (length b1) - 1
 
---makes sure that all blocks contains nine cells and whole sudoku has
---nine blocks. Also made my first lamda function :)
+-- makes sure that all blocks contains nine cells and whole sudoku has
+-- nine blocks. Also made my first lamda function :)
 prop_blocks_lengths :: Sudoku -> Bool
 prop_blocks_lengths sudo = length (filter (\x -> 9 == length x)  blocky) == 9 
     where blocky = blocks sudo
 
 -- * D3
 
+-- Check is Sudoku doesnt contain any duplicate values on its rows, columns or
+-- blocks
 isOkay :: Sudoku -> Bool
-isOkay = undefined
+isOkay (Sudoku matrix) = isColumsAndRowsOkay matrix 
+                        && (and $ map isOkayBlock (blocks (Sudoku matrix)))
+
+-- Checks that all rows and columns does not contain any duplicates
+-- using the IsOkayBlock function as it works not only for blocks but
+-- for all [Maybe Int] type aswell. 
+isColumsAndRowsOkay :: [[Maybe Int]] -> Bool
+isColumsAndRowsOkay matrix =  and $ (map isOkayBlock matrix) 
+                                 ++ (map isOkayBlock matrix')
+    where matrix' = transpose matrix
+
+
 
 
 ---- Part A ends here --------------------------------------------------------
