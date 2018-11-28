@@ -39,11 +39,10 @@ allBlankSudoku = Sudoku (replicate 9 $ replicate 9 n)
 
 -- | isSudoku sud checks if sud is really a valid representation of a sudoku
 -- puzzle
---Passes all the examples but in reality only checks if matrix contains
---9 lists and that the first list in matrix aslo has 9 elements
 isSudoku :: Sudoku -> Bool
 isSudoku (Sudoku matrix) = length matrix == 9 && isSudo' 0 matrix
 
+-- Helper function, checks the length of each row recursivly
 isSudo' :: Int -> [[Maybe Int]] -> Bool
 isSudo' 8 matrix = length (matrix !! 8) == 9
 isSudo' n matrix = length (matrix !! n) == 9 && isSudo' (n + 1) matrix
@@ -68,7 +67,7 @@ printSudoku :: Sudoku -> IO ()
 printSudoku sudo | not $ isSudoku sudo = return()
 printSudoku sudo | otherwise = printSudoku' sudo
 
---helper function. Prints the sudoku recursivly
+--Helper function. Prints the sudoku recursivly
 printSudoku' :: Sudoku -> IO ()
 printSudoku' (Sudoku []) = return ()
 printSudoku' (Sudoku (x:xs)) = do { putStrLn (map toSudoChar x)
@@ -92,7 +91,7 @@ readSudoku filepath = do  text <- readFile filepath
 -- Helper function for readSudoku
 -- Creates the [[Maybe Int]] matrix from the text
 helperReadSudoku :: String -> Sudoku
-helperReadSudoku string = Sudoku [[convertToMaybe (((lines string) !! y)!! x)
+helperReadSudoku string = Sudoku [[convertToMaybe ((lines string !! y)!! x)
                                  | x <- [0..8] ]
                                  | y <- [0..8] ]
 
@@ -131,18 +130,19 @@ type Block = [Maybe Int]
 
 
 -- * D1
-
+-- Checks that a block doesn't contain the same number twice
 isOkayBlock :: Block -> Bool
 isOkayBlock block = length (nub block') == length block'
       where block' = filter (/=Nothing) block
 
 -- * D2
 
+-- Creates a list of all the blocks in the given sudoku
 blocks :: Sudoku -> [Block]
 blocks (Sudoku matrix) = blocks' matrix
---blocks sudo = (blocks' sudo 0) ++ (blocks' sudo 1) ++ (blocks' sudo 2)
 
 
+-- Helper function, makes sure the blocks are formed correctly
 blocks' :: [[Maybe Int]] -> [Block]
 blocks' [] = []
 blocks' matrix = sortToBlocks headmatrix ++ blocks' tailmatrix
@@ -152,7 +152,7 @@ blocks' matrix = sortToBlocks headmatrix ++ blocks' tailmatrix
 --Sorts the matrix into blocks according to the layout of a sudoku
 sortToBlocks :: [[Maybe Int]] -> [Block]
 sortToBlocks [] = []
-sortToBlocks (list : matrix) = chunksOf 3 list <+ (sortToBlocks matrix)   
+sortToBlocks (list : matrix) = chunksOf 3 list <+ (sortToBlocks matrix)
 
 
 -- adds two lists of same size, index by index
@@ -162,10 +162,10 @@ sortToBlocks (list : matrix) = chunksOf 3 list <+ (sortToBlocks matrix)
 (<+) b1 b2 = [b1 !! i  ++ b2 !! i | i <- [0..n]]
     where n = (length b1) - 1
 
--- makes sure that all blocks contains nine cells and whole sudoku has
--- nine blocks. Also made my first lamda function :)
+-- Makes sure that all blocks contains nine cells and whole sudoku has
+-- nine blocks
 prop_blocks_lengths :: Sudoku -> Bool
-prop_blocks_lengths sudo = length (filter (\x -> 9 == length x)  blocky) == 9 
+prop_blocks_lengths sudo = length (filter (\x -> 9 == length x)  blocky) == 9
     where blocky = blocks sudo
 
 -- * D3
@@ -173,14 +173,14 @@ prop_blocks_lengths sudo = length (filter (\x -> 9 == length x)  blocky) == 9
 -- Check is Sudoku doesnt contain any duplicate values on its rows, columns or
 -- blocks
 isOkay :: Sudoku -> Bool
-isOkay (Sudoku matrix) = isColumsAndRowsOkay matrix 
+isOkay (Sudoku matrix) = isColumsAndRowsOkay matrix
                         && (and $ map isOkayBlock (blocks (Sudoku matrix)))
 
 -- Checks that all rows and columns does not contain any duplicates
 -- using the IsOkayBlock function as it works not only for blocks but
--- for all [Maybe Int] type aswell. 
+-- for all [Maybe Int] type aswell.
 isColumsAndRowsOkay :: [[Maybe Int]] -> Bool
-isColumsAndRowsOkay matrix =  and $ (map isOkayBlock matrix) 
+isColumsAndRowsOkay matrix =  and $ (map isOkayBlock matrix)
                                  ++ (map isOkayBlock matrix')
     where matrix' = transpose matrix
 
