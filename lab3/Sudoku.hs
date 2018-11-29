@@ -197,12 +197,23 @@ isColumsAndRowsOkay matrix =  and $ map isOkayBlock matrix
 type Pos = (Int,Int)
 
 -- * E1
-
+-- Returns a list of blank positions
 blanks :: Sudoku -> [Pos]
-blanks = undefined
+blanks (Sudoku matrix) = blanks' matrix 0
 
---prop_blanks_allBlanks :: ...
---prop_blanks_allBlanks =
+-- Helper function, gives the actual list of blank positions recursivly
+blanks' :: [[Maybe Int]] -> Int -> [Pos]
+blanks' [] _  = []
+blanks' (xs : xss) n = [ (n, snd(xs'' !! i)) | i <- [0..k]] ++
+                        blanks' xss (n + 1)
+
+          where xs' = xs `zip` [0..8]
+                xs'' = filter (\x -> fst x == Nothing) xs'
+                k = length xs'' - 1
+
+
+prop_blanks_allBlanks :: 
+prop_blanks_allBlanks =
 
 
 -- * E2
