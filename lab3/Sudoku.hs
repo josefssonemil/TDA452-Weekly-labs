@@ -212,10 +212,13 @@ blanks' (xs : xss) n = [ (n, snd(xs'' !! i)) | i <- [0..k]] ++
                 k = length xs'' - 1
 
 
-prop_blanks_allBlanks :: 
-prop_blanks_allBlanks =
+prop_blanks_allBlanks :: Sudoku -> Bool
+prop_blanks_allBlanks (Sudoku matrix) = and [(matrix !! fst(list !! i))
+                                        !! snd(list !! i) == Nothing
+                                        | i <- [0..n]]
 
-
+          where list = blanks (Sudoku matrix)
+                n = length list - 1
 -- * E2
 
 (!!=) :: [a] -> (Int,a) -> [a]
