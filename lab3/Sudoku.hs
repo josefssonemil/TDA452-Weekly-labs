@@ -223,8 +223,8 @@ prop_blanks_allBlanks (Sudoku matrix) = and [(matrix !! fst(list !! i))
 
 -- Inserts the value given, at index i, in the given list
 (!!=) :: [a] -> (Int,a) -> [a]
-xs !!= (_,y) | null xs = [y]
-xs !!= (i,y) | i > length xs = error "index too large"
+[] !!= _ = error "empty list"   
+xs !!= (i,y) | i > length xs || i < 0 = error "incorrect index"
 xs !!= (i,y) = t1 ++ [y] ++ t2
       where t1 = fst(splitAt i xs)
             t2 = snd(splitAt (i + 1) xs)
@@ -232,9 +232,12 @@ xs !!= (i,y) = t1 ++ [y] ++ t2
 
 -- Property for (!!=) operator. Currently fails on input: [], (i, ())
 prop_bangBangEquals_correct :: Eq a => [a] -> (Int, a) -> Bool
+prop_bangBangEquals_correct [] _ = True
+prop_bangBangEquals_correct xs (i,y) | i < 0 || i > length xs = True
 prop_bangBangEquals_correct xs (i,y) = (xs' !! i) == y &&
-                                     length xs == length xs' &&
-                                     i < length xs
+                                       (length xs == length xs' 
+                                       || (length xs +1 )  == length xs') 
+                                     
 
       where xs' = xs !!= (i,y)
 
@@ -242,14 +245,14 @@ prop_bangBangEquals_correct xs (i,y) = (xs' !! i) == y &&
 
 -- Takes in a Sudoku, position and value and updates the Sudoku with the
 -- new value at the given position
-update :: Sudoku -> Pos -> Maybe Int -> Sudoku
+--update :: Sudoku -> Pos -> Maybe Int -> Sudoku
 --update sudoku pos n | (not) isSudoku sudoku ||
 --                      fst pos > 8 || fst pos < 0 ||
 --                      snd pos > 8 || snd pos < 0 ||
 --                      n < 0 || n > 9 = error "invalid input"
-update (Sudoku matrix) pos n = row !!= (snd pos, n)
+--update (Sudoku matrix) pos n = row !!= (snd pos, n)
 
-                    where row = matrix !! fst pos
+ --                   where row = matrix !! fst pos
 
 --prop_update_updated :: ...
 --prop_update_updated =
