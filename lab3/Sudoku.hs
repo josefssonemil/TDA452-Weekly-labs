@@ -257,8 +257,13 @@ update (Sudoku matrix) pos n  = (Sudoku ( matrix !!= (fst pos, row')))
                     where row = matrix !! fst pos
                           row' = row !!= (snd pos, n) 
 
---prop_update_updated :: ...
---prop_update_updated =
+prop_update_updated :: Sudoku -> Pos -> Maybe Int -> Bool
+prop_update_updated _ p _ | (fst p) < 0 || (snd p) < 0 
+                                        || (fst p) > 8 || (snd p) > 8 = True
+prop_update_updated _ _ Nothing = True
+prop_update_updated (Sudoku matrix) pos n = (matrix' !! (fst pos)) 
+                                            !! (snd pos) == n
+    where (Sudoku matrix') = update (Sudoku matrix) pos n
 
 
 -- * E4
