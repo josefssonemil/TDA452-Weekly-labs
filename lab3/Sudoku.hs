@@ -245,14 +245,17 @@ prop_bangBangEquals_correct xs (i,y) = (xs' !! i) == y &&
 
 -- Takes in a Sudoku, position and value and updates the Sudoku with the
 -- new value at the given position
---update :: Sudoku -> Pos -> Maybe Int -> Sudoku
---update sudoku pos n | (not) isSudoku sudoku ||
---                      fst pos > 8 || fst pos < 0 ||
---                      snd pos > 8 || snd pos < 0 ||
---                      n < 0 || n > 9 = error "invalid input"
---update (Sudoku matrix) pos n = row !!= (snd pos, n)
-
- --                   where row = matrix !! fst pos
+update :: Sudoku -> Pos -> Maybe Int -> Sudoku
+update sudoku _ Nothing = sudoku
+update sudoku pos (Just n) | not $ isSudoku sudoku ||
+                      fst pos > 8 || fst pos < 0 ||
+                      snd pos > 8 || snd pos < 0 ||
+                      n < 0 || n > 9 = error "invalid input"
+--dont understand why it cant be (Just n) here. !!= should take a int
+--not a Maybe Int
+update (Sudoku matrix) pos n  = (Sudoku ( matrix !!= (fst pos, row')))
+                    where row = matrix !! fst pos
+                          row' = row !!= (snd pos, n) 
 
 --prop_update_updated :: ...
 --prop_update_updated =
