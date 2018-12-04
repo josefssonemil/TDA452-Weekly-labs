@@ -268,8 +268,28 @@ prop_update_updated (Sudoku matrix) pos n = (matrix' !! (fst pos))
 
 -- * E4
 
-candidates :: Sudoku -> Pos -> [Int]
-candidates = undefined
+--candidates :: Sudoku -> Pos -> [Int]
+--candidates (Sudoku matrix) pos = undefined -- [   | i <- [0..8] ]
+
+
+   -- where row = matrix !! (fst pos)
+         -- col = (transpose matrix) !! (snd pos)
+        --  block = getBlock  (blocks (Sudoku matrix)) pos
+
+--isOkayPlay :: Sudoku -> Pos -> Int -> Bool
+--isOkayPlay (Sudoku matrix) pos n = isOkayBlock row && isOkayBlock col 
+  --                                 && isOkayBlock block  
+   -- where row = (matrix !! (fst pos)) !!= ( n,  
+     --     col = (transpose matrix) !! (snd pos)
+       --   block = getBlock  (blocks (Sudoku matrix)) pos
+
+--getBlock :: [Block] -> Pos -> Block
+--getBlock blocks (i,j) = blocks !! index
+  --  where i' = div i 3 
+    --      j' = div j 3
+      --    index =  (3*i') + j'
+                              
+            
 
 --prop_candidates_correct :: ...
 --prop_candidates_correct =
