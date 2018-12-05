@@ -224,7 +224,7 @@ prop_blanks_allBlanks (Sudoku matrix) = and [(matrix !! fst(list !! i))
 
 -- Inserts the value given, at index i, in the given list
 (!!=) :: [a] -> (Int,a) -> [a]
-[] !!= _ = error "empty list"   
+[] !!= _ = error "empty list"
 xs !!= (i,y) | i > length xs || i < 0 = error "incorrect index"
 xs !!= (i,y) = t1 ++ [y] ++ t2
       where t1 = fst(splitAt i xs)
@@ -236,9 +236,9 @@ prop_bangBangEquals_correct :: Eq a => [a] -> (Int, a) -> Bool
 prop_bangBangEquals_correct [] _ = True
 prop_bangBangEquals_correct xs (i,y) | i < 0 || i > length xs = True
 prop_bangBangEquals_correct xs (i,y) = (xs' !! i) == y &&
-                                       (length xs == length xs' 
-                                       || (length xs +1 )  == length xs') 
-                                     
+                                       (length xs == length xs'
+                                       || (length xs +1 )  == length xs')
+
 
       where xs' = xs !!= (i,y)
 
@@ -256,13 +256,13 @@ update sudoku pos (Just n) | not $ isSudoku sudoku ||
 --not a Maybe Int
 update (Sudoku matrix) pos n  = (Sudoku ( matrix !!= (fst pos, row')))
                     where row = matrix !! fst pos
-                          row' = row !!= (snd pos, n) 
+                          row' = row !!= (snd pos, n)
 
 prop_update_updated :: Sudoku -> Pos -> Maybe Int -> Bool
-prop_update_updated _ p _ | (fst p) < 0 || (snd p) < 0 
+prop_update_updated _ p _ | (fst p) < 0 || (snd p) < 0
                                         || (fst p) > 8 || (snd p) > 8 = True
 prop_update_updated _ _ Nothing = True
-prop_update_updated (Sudoku matrix) pos n = (matrix' !! (fst pos)) 
+prop_update_updated (Sudoku matrix) pos n = (matrix' !! (fst pos))
                                             !! (snd pos) == n
     where (Sudoku matrix') = update (Sudoku matrix) pos n
 
@@ -272,7 +272,7 @@ prop_update_updated (Sudoku matrix) pos n = (matrix' !! (fst pos))
 candidates :: Sudoku -> Pos -> [Int]
 candidates (Sudoku matrix) (x,y) | (matrix !! x) !! y /= Nothing = []
 candidates sudo pos = filter (\x -> isOkayPlay sudo pos x) [1..9]
-    
+
 
 
 isOkayPlay :: Sudoku -> Pos -> Int -> Bool
@@ -280,30 +280,30 @@ isOkayPlay (Sudoku matrix) (x,y) n = isOkayBlock row
                                   && isOkayBlock col
                                   && isOkayBlock block'
     where blkidx = 3 * (mod x 3) + (mod y 3)
-          row = (matrix !! x) !!= (x,(Just n)) 
+          row = (matrix !! x) !!= (x,(Just n))
           col = ((transpose matrix) !! y) !!= (y,(Just n))
-          block = (getBlock (blocks (Sudoku matrix)) (x,y)) 
-          block' = block !!= (blkidx, (Just n)) 
+          block = (getBlock (blocks (Sudoku matrix)) (x,y))
+          block' = block !!= (blkidx, (Just n))
 
 
 getBlock :: [Block] -> Pos -> Block
 getBlock blocks (i,j) = blocks !! index
-    where i' = div i 3 
+    where i' = div i 3
           j' = div j 3
           index =  (3*i') + j'
-                              
-            
+
+
 
 prop_candidates_correct :: Sudoku -> Pos -> Bool
-prop_candidates_correct sudo (x,y) | x < 0 || y < 0 
-                                   || isSudoku sudo = True 
-prop_candidates_correct sudo pos = 
+prop_candidates_correct sudo (x,y) | x < 0 || y < 0
+                                   || isSudoku sudo = True
+prop_candidates_correct sudo pos =
           elem pos (blanks sudo) &&
           length filtered == length cands
     where cands = candidates sudo pos
           isOK = (\x -> isOkay (update sudo pos (Just x)))
           filtered = filter isOK cands
-                        
+
 
 
 ------------------------------------------------------------------------------
@@ -315,13 +315,21 @@ solve sudo = solve' sudo
 
 solve' :: Sudoku -> Maybe Sudoku
 solve' sudo | length (blanks sudo) == 0 = (Just sudo)
-solve' sudo = listToMaybe (filter isOkay 
+solve' sudo = listToMaybe (filter isOkay
                                (catMaybes (map solver candi)))
     where blks = blanks sudo
-          candi = candidates sudo (head blks) 
+          candi = candidates sudo (head blks)
           solver = (\x -> solve' (update sudo (head blks) (Just x)))
 
 -- * F2
+
+-- Takes a filepath, reads the Sudoku, solves it and ten prints it
+readAndSolve :: FilePath -> IO ()
+readAndSolve filepath = do { sud <- readSudoku filepath
+                        ; printSudoku (fromJust (solve sud)) }
+
+
+
 
 -- * F3
 
