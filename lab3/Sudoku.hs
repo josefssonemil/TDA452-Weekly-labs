@@ -293,8 +293,16 @@ getBlock blocks (i,j) = blocks !! index
                               
             
 
---prop_candidates_correct :: 
---prop_candidates_correct =
+prop_candidates_correct :: Sudoku -> Pos -> Bool
+prop_candidates_correct sudo (x,y) | x < 0 || y < 0 
+                                   || isSudoku sudo = True 
+prop_candidates_correct sudo pos = 
+          elem pos (blanks sudo) &&
+          length filtered == length cands
+    where cands = candidates sudo pos
+          isOK = (\x -> isOkay (update sudo pos (Just x)))
+          filtered = filter isOK cands
+                        
 
 
 ------------------------------------------------------------------------------
