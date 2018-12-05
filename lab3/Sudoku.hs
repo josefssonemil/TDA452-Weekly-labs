@@ -209,7 +209,7 @@ blanks' (xs : xss) n = [ (n, snd(xs'' !! i)) | i <- [0..k]] ++
                         blanks' xss (n + 1)
 
           where xs' = xs `zip` [0..8]
-                xs'' = filter (\x -> fst x == Nothing) xs'
+                xs'' = filter (\x -> isNothing(fst x)) xs'
                 k = length xs'' - 1
 
 
@@ -309,11 +309,12 @@ prop_candidates_correct sudo pos =
 ------------------------------------------------------------------------------
 
 -- * F1
--- Attempts to solve a given Sudoku 
+-- Attempts to solve a given Sudoku
 solve :: Sudoku -> Maybe Sudoku
 solve sudo | not (isSudoku sudo && isOkay sudo) = Nothing
 solve sudo = solve' sudo
 
+-- Helper function for solve, which does the actual work
 solve' :: Sudoku -> Maybe Sudoku
 solve' sudo | length (blanks sudo) == 0 = (Just sudo)
 solve' sudo = listToMaybe (filter isOkay
@@ -350,7 +351,7 @@ checkPositions i sud1 sud2 = getNumber sud1 index
                 index = posList !! i
 
 
-getNumber:: Sudoku -> Pos -> Maybe Int
+getNumber :: Sudoku -> Pos -> Maybe Int
 getNumber (Sudoku matrix) pos = (matrix !! x) !! y
 
           where x = fst pos
@@ -368,7 +369,7 @@ nonBlanks' (xs : xss) n = [ (n, snd(xs'' !! i)) | i <- [0..k]] ++
                           blanks' xss (n + 1)
 
             where xs' = xs `zip` [0..8]
-                  xs'' = filter (\x -> isJust (fst x)) xs'
+                  xs'' = filter (isJust . fst) xs'
                   k = length xs'' - 1
 -- * F4
 -- Checks that every supposed solution produced by solve actually
