@@ -3,6 +3,7 @@ import Test.QuickCheck
 import Data.Char
 import Data.List
 import Data.List.Split
+import Data.Maybe
 -------------------------------------------------------------------------
 
 -- | Representation of sudoku puzzlese (allows some junk)
@@ -270,7 +271,7 @@ prop_update_updated (Sudoku matrix) pos n = (matrix' !! (fst pos))
 
 candidates :: Sudoku -> Pos -> [Int]
 candidates (Sudoku matrix) (x,y) | (matrix !! x) !! y /= Nothing = []
-candidates sudo pos = filter (\x -> isOkayPlay sudo pos x) [0..8]
+candidates sudo pos = filter (\x -> isOkayPlay sudo pos x) [1..9]
     
 
 
@@ -308,7 +309,17 @@ prop_candidates_correct sudo pos =
 ------------------------------------------------------------------------------
 
 -- * F1
+solve :: Sudoku -> Maybe Sudoku
+solve sudo | not (isSudoku sudo && isOkay sudo) = Nothing
+solve sudo = solve' sudo
 
+solve' :: Sudoku -> Maybe Sudoku
+solve' sudo | length (blanks sudo) == 0 = (Just sudo)
+solve' sudo = listToMaybe (filter isOkay 
+                               (catMaybes (map solver candi)))
+    where blks = blanks sudo
+          candi = candidates sudo (head blks) 
+          solver = (\x -> solve' (update sudo (head blks) (Just x)))
 
 -- * F2
 
