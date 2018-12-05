@@ -209,7 +209,7 @@ blanks' (xs : xss) n = [ (n, snd(xs'' !! i)) | i <- [0..k]] ++
                         blanks' xss (n + 1)
 
           where xs' = xs `zip` [0..8]
-                xs'' = filter (\x -> isNothing(fst x)) xs'
+                xs'' = filter (isNothing . fst) xs'
                 k = length xs'' - 1
 
 
@@ -231,7 +231,7 @@ xs !!= (i,y) = t1 ++ [y] ++ t2
             t2 = snd(splitAt (i + 1) xs)
 
 
--- Property for (!!=) operator. Currently fails on input: [], (i, ())
+-- Properties for (!!=) function
 prop_bangBangEquals_correct :: Eq a => [a] -> (Int, a) -> Bool
 prop_bangBangEquals_correct [] _ = True
 prop_bangBangEquals_correct xs (i,y) | i < 0 || i > length xs = True
@@ -252,18 +252,17 @@ update sudoku pos (Just n) | not $ isSudoku sudoku ||
                       fst pos > 8 || fst pos < 0 ||
                       snd pos > 8 || snd pos < 0 ||
                       n < 0 || n > 9 = error "invalid input"
---dont understand why it cant be (Just n) here. !!= should take a int
---not a Maybe Int
-update (Sudoku matrix) pos n  = (Sudoku ( matrix !!= (fst pos, row')))
+update (Sudoku matrix) pos n  = Sudoku ( matrix !!= (fst pos, row'))
                     where row = matrix !! fst pos
                           row' = row !!= (snd pos, n)
 
+
 prop_update_updated :: Sudoku -> Pos -> Maybe Int -> Bool
-prop_update_updated _ p _ | (fst p) < 0 || (snd p) < 0
-                                        || (fst p) > 8 || (snd p) > 8 = True
+prop_update_updated _ p _ | fst p < 0 || snd p < 0
+                                        || fst p > 8 || snd p > 8 = True
 prop_update_updated _ _ Nothing = True
-prop_update_updated (Sudoku matrix) pos n = (matrix' !! (fst pos))
-                                            !! (snd pos) == n
+prop_update_updated (Sudoku matrix) pos n = (matrix' !! fst pos)
+                                            !! snd pos == n
     where (Sudoku matrix') = update (Sudoku matrix) pos n
 
 
@@ -272,8 +271,9 @@ prop_update_updated (Sudoku matrix) pos n = (matrix' !! (fst pos))
 -- Generates candidates that can be legally inserted in a given
 -- position in a Sudoku
 candidates :: Sudoku -> Pos -> [Int]
-candidates (Sudoku matrix) (x,y) | (matrix !! x) !! y /= Nothing = []
-candidates sudo pos = filter (\x -> isOkayPlay sudo pos x) [1..9]
+candidates (Sudoku matrix) (x,y) | isJust ((matrix !! x) !! y) = []
+
+candidates sudo pos = filter (isOkayPlay sudo pos) [1..9]
 
 
 
@@ -281,11 +281,11 @@ isOkayPlay :: Sudoku -> Pos -> Int -> Bool
 isOkayPlay (Sudoku matrix) (x,y) n = isOkayBlock row
                                   && isOkayBlock col
                                   && isOkayBlock block'
-    where blkidx = 3 * (mod x 3) + (mod y 3)
-          row = (matrix !! x) !!= (x,(Just n))
-          col = ((transpose matrix) !! y) !!= (y,(Just n))
-          block = (getBlock (blocks (Sudoku matrix)) (x,y))
-          block' = block !!= (blkidx, (Just n))
+    where blkidx = 3 * mod x 3 + mod y 3
+          row = (matrix !! x) !!= (x, Just n)
+          col = (transpose matrix !! y) !!= (y, Just n)
+          block = getBlock (blocks (Sudoku matrix)) (x,y)
+          block' = block !!= (blkidx, Just n)
 
 
 getBlock :: [Block] -> Pos -> Block
@@ -318,7 +318,7 @@ solve sudo = solve' sudo
 
 -- Helper function for solve, which does the actual work
 solve' :: Sudoku -> Maybe Sudoku
-solve' sudo | length (blanks sudo) == 0 = (Just sudo)
+solve' sudo | null (blanks sudo) = Just sudo
 solve' sudo = listToMaybe (filter isOkay
                                (catMaybes (map solver candi)))
     where blks = blanks sudo
