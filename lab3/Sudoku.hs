@@ -333,7 +333,46 @@ readAndSolve filepath = do { sud <- readSudoku filepath
 
 -- * F3
 
+-- Get numbers and positions of second sudoku, compare if numbers are same
+-- on the same positions in first sudoku
+isSolutionOf :: Sudoku -> Sudoku -> Bool
+isSolutionOf sud1 sud2 | not (isOkay sud1) || not (isFilled sud1) = False
+isSolutionOf sud1 sud2 = checkPositions 0 sud1 sud2
 
+
+checkPositions :: Int -> Sudoku -> Sudoku -> Bool
+checkPositions i sud1 sud2 | i == length (nonBlanks sud2) = True
+checkPositions i sud1 sud2 = getNumber sud1 index
+                            == getNumber sud2 index
+                            && checkPositions (i + 1) sud1 sud2
+
+          where posList = nonBlanks sud2
+                index = posList !! i
+
+
+getNumber:: Sudoku -> Pos -> Maybe Int
+getNumber (Sudoku matrix) pos = (matrix !! x) !! y
+
+          where x = fst pos
+                y = snd pos
+
+--Gets all non-blank positions from a sudoku
+nonBlanks :: Sudoku -> [Pos]
+nonBlanks (Sudoku matrix) = nonBlanks' matrix 0
+
+
+-- Helper function, gives the actual list of blank positions recursivly
+nonBlanks' :: [[Maybe Int]] -> Int -> [Pos]
+nonBlanks' [] _  = []
+nonBlanks' (xs : xss) n = [ (n, snd(xs'' !! i)) | i <- [0..k]] ++
+                          blanks' xss (n + 1)
+
+            where xs' = xs `zip` [0..8]
+                  xs'' = filter (\x -> fst x /= Nothing ) xs'
+                  k = length xs'' - 1
 -- * F4
+
+--prop_solveSound :: Sudoku -> Property
+--prop_solveSound
 
 -------------------------------------------------------------------------
