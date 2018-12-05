@@ -268,30 +268,32 @@ prop_update_updated (Sudoku matrix) pos n = (matrix' !! (fst pos))
 
 -- * E4
 
---candidates :: Sudoku -> Pos -> [Int]
---candidates (Sudoku matrix) pos = undefined -- [   | i <- [0..8] ]
+candidates :: Sudoku -> Pos -> [Int]
+candidates (Sudoku matrix) (x,y) | (matrix !! x) !! y /= Nothing = []
+candidates sudo pos = filter (\x -> isOkayPlay sudo pos x) [0..8]
+    
 
 
-   -- where row = matrix !! (fst pos)
-         -- col = (transpose matrix) !! (snd pos)
-        --  block = getBlock  (blocks (Sudoku matrix)) pos
+isOkayPlay :: Sudoku -> Pos -> Int -> Bool
+isOkayPlay (Sudoku matrix) (x,y) n = isOkayBlock row
+                                  && isOkayBlock col
+                                  && isOkayBlock block'
+    where blkidx = 3 * (mod x 3) + (mod y 3)
+          row = (matrix !! x) !!= (x,(Just n)) 
+          col = ((transpose matrix) !! y) !!= (y,(Just n))
+          block = (getBlock (blocks (Sudoku matrix)) (x,y)) 
+          block' = block !!= (blkidx, (Just n)) 
 
---isOkayPlay :: Sudoku -> Pos -> Int -> Bool
---isOkayPlay (Sudoku matrix) pos n = isOkayBlock row && isOkayBlock col 
-  --                                 && isOkayBlock block  
-   -- where row = (matrix !! (fst pos)) !!= ( n,  
-     --     col = (transpose matrix) !! (snd pos)
-       --   block = getBlock  (blocks (Sudoku matrix)) pos
 
---getBlock :: [Block] -> Pos -> Block
---getBlock blocks (i,j) = blocks !! index
-  --  where i' = div i 3 
-    --      j' = div j 3
-      --    index =  (3*i') + j'
+getBlock :: [Block] -> Pos -> Block
+getBlock blocks (i,j) = blocks !! index
+    where i' = div i 3 
+          j' = div j 3
+          index =  (3*i') + j'
                               
             
 
---prop_candidates_correct :: ...
+--prop_candidates_correct :: 
 --prop_candidates_correct =
 
 
