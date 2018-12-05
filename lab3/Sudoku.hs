@@ -309,6 +309,7 @@ prop_candidates_correct sudo pos =
 ------------------------------------------------------------------------------
 
 -- * F1
+-- Attempts to solve a given Sudoku 
 solve :: Sudoku -> Maybe Sudoku
 solve sudo | not (isSudoku sudo && isOkay sudo) = Nothing
 solve sudo = solve' sudo
@@ -328,20 +329,19 @@ readAndSolve :: FilePath -> IO ()
 readAndSolve filepath = do { sud <- readSudoku filepath
                         ; printSudoku (fromJust (solve sud)) }
 
-
-
-
 -- * F3
 
 -- Get numbers and positions of second sudoku, compare if numbers are same
--- on the same positions in first sudoku
+-- on the same positions in first sudoku //emil
+
+-- Checks whether sud1 is a solution of sud2
 isSolutionOf :: Sudoku -> Sudoku -> Bool
 isSolutionOf sud1 sud2 | not (isOkay sud1) || not (isFilled sud1) = False
 isSolutionOf sud1 sud2 = checkPositions 0 sud1 sud2
 
 
 checkPositions :: Int -> Sudoku -> Sudoku -> Bool
-checkPositions i sud1 sud2 | i == length (nonBlanks sud2) = True
+checkPositions i sud1 sud2 | i == length (nonBlanks sud2) - 1 = True
 checkPositions i sud1 sud2 = getNumber sud1 index
                             == getNumber sud2 index
                             && checkPositions (i + 1) sud1 sud2
@@ -368,11 +368,15 @@ nonBlanks' (xs : xss) n = [ (n, snd(xs'' !! i)) | i <- [0..k]] ++
                           blanks' xss (n + 1)
 
             where xs' = xs `zip` [0..8]
-                  xs'' = filter (\x -> fst x /= Nothing ) xs'
+                  xs'' = filter (\x -> isJust (fst x)) xs'
                   k = length xs'' - 1
 -- * F4
+-- Checks that every supposed solution produced by solve actually
+-- is a valid solution of the original problem
+prop_solveSound :: Sudoku -> Property
+prop_solveSound sudoku = isJust solvSudoku ==>
+                        isSolutionOf (fromJust solvSudoku) sudoku
 
---prop_solveSound :: Sudoku -> Property
---prop_solveSound
+            where solvSudoku = solve sudoku
 
 -------------------------------------------------------------------------
