@@ -269,6 +269,8 @@ prop_update_updated (Sudoku matrix) pos n = (matrix' !! (fst pos))
 
 -- * E4
 
+-- Generates candidates that can be legally inserted in a given
+-- position in a Sudoku
 candidates :: Sudoku -> Pos -> [Int]
 candidates (Sudoku matrix) (x,y) | (matrix !! x) !! y /= Nothing = []
 candidates sudo pos = filter (\x -> isOkayPlay sudo pos x) [1..9]
@@ -325,15 +327,13 @@ solve' sudo = listToMaybe (filter isOkay
 
 -- * F2
 
--- Takes a filepath, reads the Sudoku, solves it and ten prints it
+-- Takes a filepath, reads the Sudoku, solves it and then prints it
 readAndSolve :: FilePath -> IO ()
 readAndSolve filepath = do { sud <- readSudoku filepath
                         ; printSudoku (fromJust (solve sud)) }
 
 -- * F3
 
--- Get numbers and positions of second sudoku, compare if numbers are same
--- on the same positions in first sudoku //emil
 
 -- Checks whether sud1 is a solution of sud2
 isSolutionOf :: Sudoku -> Sudoku -> Bool
@@ -341,39 +341,37 @@ isSolutionOf sud1 sud2 | not (isOkay sud1) || not (isFilled sud1) = False
 isSolutionOf sud1 sud2 = checkPositions 0 sud1 sud2
 
 
+-- Checks if a position contains the same number in both Sudokus
 checkPositions :: Int -> Sudoku -> Sudoku -> Bool
-checkPositions i sud1 sud2 | i == length (nonBlanks sud2) - 1 = True
-checkPositions i sud1 sud2 = getNumber sud1 index
-                            == getNumber sud2 index
+checkPositions i sud1 sud2 | i == length (filterBlanks sud2) - 1 = True
+checkPositions i sud1 sud2 = getNumber sud1 k
+                            == getNumber sud2 k
                             && checkPositions (i + 1) sud1 sud2
 
-          where posList = nonBlanks sud2
-                index = posList !! i
+          where posList = filterBlanks sud2
+                k = posList !! i
 
+-- Filters out all blank positions in a Sudoku
+filterBlanks :: Sudoku -> [Pos]
+filterBlanks sud = filter (`notElem` blankPos) pos
 
+            where blankPos = blanks sud
+                  pos = [ (x,y) | x <- [0..8], y <- [0..8]]
+
+-- Gets the number that is in a given position in a Sudoku
 getNumber :: Sudoku -> Pos -> Maybe Int
 getNumber (Sudoku matrix) pos = (matrix !! x) !! y
 
           where x = fst pos
                 y = snd pos
 
---Gets all non-blank positions from a sudoku
-nonBlanks :: Sudoku -> [Pos]
-nonBlanks (Sudoku matrix) = nonBlanks' matrix 0
 
-
--- Helper function, gives the actual list of blank positions recursivly
-nonBlanks' :: [[Maybe Int]] -> Int -> [Pos]
-nonBlanks' [] _  = []
-nonBlanks' (xs : xss) n = [ (n, snd(xs'' !! i)) | i <- [0..k]] ++
-                          blanks' xss (n + 1)
-
-            where xs' = xs `zip` [0..8]
-                  xs'' = filter (isJust . fst) xs'
-                  k = length xs'' - 1
 -- * F4
 -- Checks that every supposed solution produced by solve actually
 -- is a valid solution of the original problem
+-- We check that the solved sudoku is on the form isJust, otherwise
+-- it isn't solved. We bind that boolean condition to the property,
+-- namely that the solved sudoku should be a solution of itself
 prop_solveSound :: Sudoku -> Property
 prop_solveSound sudoku = isJust solvSudoku ==>
                         isSolutionOf (fromJust solvSudoku) sudoku
