@@ -9,11 +9,12 @@ createPlaydeck n _ | n < 2 || n > 5  = error "Incorrect amount of players"
 createPlayDeck n h = generateCards Kitten (n-1) <+
                      generateCards Defuse 2 <+ h
 
+--only 8 catcard, modified rules
 createStandardDeck :: Hand
 createStandardDeck = generateCards Favor 4 <+ generateCards Skip 4 <+
                      generateCards Shuffle 4 <+ generateCards Nope 5 <+
                      generateCards Future 5 <+ generateCards Attack 4 <+
-                     generateCards Catcard 16
+                     generateCards Catcard 8
 
 generateCards :: Model -> Integer -> Hand
 generateCards m n | n < 1 = Empty
@@ -109,8 +110,13 @@ playFuture :: Hand -> Hand
 playFuture Empty = Empty
 playFuture deck = snd( draw deck Empty 3)  
 
-playCatcard :: Card -> Hand -> Hand
-playCatcard = undefined
+-- Needs fixing
+-- Start with only 1 catcard
+-- Current first then opponent
+playCatcard :: StdGen -> Hand -> Hand -> (Hand,Hand)
+playCatcard g h1 h2 = (snd drawn , fst drawn)
+    where x = shuffle g h2
+          drawn = draw x h1 0  
 
 -- Plays the nope card: stops the action of the other player
 playNope :: Card -> Hand -> Hand
