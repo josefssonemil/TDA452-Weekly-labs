@@ -4,7 +4,7 @@ import System.Random
 createPlayDeck :: Integer -> Hand -> Hand
 createPlaydeck n _ | n < 2 || n > 5  = error "Incorrect amount of players"
 createPlayDeck n h = generateCards Kitten (n-1) <+
-                     (generateCards Defuse 2) <+ h
+                     generateCards Defuse 2 <+ h
 
 createStandardDeck :: Hand
 createStandardDeck = generateCards Favor 4 <+ generateCards Skip 4 <+
@@ -47,7 +47,12 @@ getCard n (Add card hand) = getCard (n-1) (hand <+ Add card Empty)
 
 -- Player plays a card. Chooses the following function depending
 -- on card chosen
-playCard :: Card -> Hand -> (Card, Hand)
+
+-- TODO: fix the input/output in functions 
+-- so they correspond with each action card. Needs to be discussed,
+-- current types are just placeholders for now
+
+playCard :: Card -> Hand -> Hand
 playCard (Card model) hand
                     | model == Skip = playSkip (Card model) hand
                     | model == Defuse = playDefuse (Card model) hand
@@ -58,32 +63,43 @@ playCard (Card model) hand
                     | model == Nope = playNope (Card model) hand
                     | model == Attack = playAttack (Card model) hand
 
+
+
 -- Plays the defuse card: If player draws an exploding kitten, this card
 -- can be used to prevent dying. The player will then put the Exploding Kitten
 -- back into the pile wherever he wants
 
 -- Input: defuse card and players hand
 -- Output: players new hand and new deck
-playDefuse :: Card -> Hand -> (Hand, Hand)
-playDefuse card hand =
+playDefuse :: Card -> Hand -> Hand
+playDefuse = undefined
 
-playSkip :: Card -> Hand -> (Card, Hand)
+-- Plays the skip card: players turn ends without having to draw a new card
+-- Input: player hand and card
+-- Output: player hand without skip card
+playSkip :: Card -> Hand -> Hand
 playSkip = undefined
 
-playFavor :: Card -> Hand -> (Card, Hand)
+-- Plays the favor card: the other player must choose a card to give to
+-- the player that played the favor card
+playFavor :: Card -> Hand -> Hand
 playFavor = undefined
 
-playShuffle :: Card -> Hand -> (Card, Hand)
+-- Plays the shuffle card: shuffles the draw deck
+playShuffle :: Card -> Hand -> Hand
 playShuffle = undefined
 
-playFuture :: Card -> Hand -> (Card, Hand)
+-- Plays the future card: player may view the top 3 cards in the draw deck
+playFuture :: Card -> Hand -> Hand
 playFuture = undefined
 
-playCatcard :: Card -> Hand -> (Card, Hand)
+playCatcard :: Card -> Hand -> Hand
 playCatcard = undefined
 
-playNope :: Card -> Hand -> (Card, Hand)
+-- Plays the nope card: stops the action of the other player
+playNope :: Card -> Hand -> Hand
 playNope = undefined
 
-playAttack :: Card -> Hand -> (Card, Hand)
+-- Plays the attack card: ??
+playAttack :: Card -> Hand -> Hand
 playAttack = undefined
