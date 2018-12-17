@@ -68,8 +68,7 @@ playCard (Card model) hand
                     | model == Skip = playSkip (Card model) hand
                     | model == Defuse = playDefuse (Card model) hand
                     | model == Favor = playFavor (Card model) hand
-                    | model == Shuffle = playShuffle (Card model) hand
-                    | model == Future = playFuture (Card model) hand
+                   -- | model == Future = playFuture (Card model) hand
                     | model == Catcard = playCatcard (Card model) hand
                     | model == Nope = playNope (Card model) hand
                     | model == Attack = playAttack (Card model) hand
@@ -96,13 +95,19 @@ playSkip = undefined
 playFavor :: Card -> Hand -> Hand
 playFavor = undefined
 
+-- Call in game loop
 -- Plays the shuffle card: shuffles the draw deck
-playShuffle :: Card -> Hand -> Hand
-playShuffle = undefined
+playShuffle :: StdGen -> Hand -> Hand
+playShuffle g hand = shuffle g hand
 
+-- Takes deck, gives top 3 cards
 -- Plays the future card: player may view the top 3 cards in the draw deck
-playFuture :: Card -> Hand -> Hand
-playFuture = undefined
+playFuture :: Hand -> Hand
+playFuture Empty = Empty
+playFuture deck = snd( draw deck Empty 3)  
+
+
+
 
 playCatcard :: Card -> Hand -> Hand
 playCatcard = undefined
