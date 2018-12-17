@@ -1,5 +1,8 @@
+module Explodingkittens where
+
 import Cards
 import System.Random
+
 -- Integer = Amount of players
 createPlayDeck :: Integer -> Hand -> Hand
 createPlaydeck n _ | n < 2 || n > 5  = error "Incorrect amount of players"
@@ -44,6 +47,14 @@ getCard n Empty = error "empty hand"
 getCard n hand | n < 0 || n > handLength hand = error "too large hand"
 getCard 0 (Add card hand) = (card,hand)
 getCard n (Add card hand) = getCard (n-1) (hand <+ Add card Empty)
+
+--Deck then hand
+draw :: Hand -> Hand -> Integer -> (Hand,Hand)
+draw Empty hand _ = (Empty,hand)
+draw deck hand 0 = (deck,hand)
+draw deck hand n = draw (snd drawn) (Add (fst drawn) hand) (n-1)
+    where drawn = getCard 0 deck
+   
 
 -- Player plays a card. Chooses the following function depending
 -- on card chosen
