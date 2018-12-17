@@ -3,12 +3,12 @@ import Test.QuickCheck
 
 -- A card does only consist of a type (model)
 data Card = Card {model :: Model}
-            deriving Show
+            deriving (Show, Eq)
 
 -- Type of card
 data Model = Kitten | Skip | Favor | Shuffle | Future |
             Catcard | Nope | Defuse | Attack
-            deriving Show
+            deriving (Show, Eq)
 
 -- Generating arbitary cards
 instance Arbitrary Card where
@@ -22,7 +22,7 @@ instance Arbitrary Model where
                            return Nope, return Defuse, return Attack]
 
 data Hand = Empty | Add Card Hand
-            deriving Show
+            deriving (Show , Eq)
 
 instance Arbitrary Hand where
   arbitrary = frequency [(1, return Empty)
