@@ -56,6 +56,19 @@ draw deck hand 0 = (deck,hand)
 draw deck hand n = draw (snd drawn) (Add (fst drawn) hand) (n-1)
     where drawn = getCard 0 deck
    
+--remove first occorence of card in hand
+removeCard :: Card -> Hand -> Hand
+removeCard c Empty = Empty
+removeCard c h = removeCard' (handLength h) c h
+
+removeCard' :: Integer -> Card -> Hand -> Hand
+removeCard' n c Empty = Empty
+removeCard' 0 _ hand = hand
+removeCard' n (Card m1) hand = if m1 == m2 then h 
+                               else removeCard' (n-1) (Card m1) 
+                                    (h <+ Add (Card m2) Empty) 
+    where (Add (Card m2) h) = hand
+          
 
 -- Player plays a card. Chooses the following function depending
 -- on card chosen
