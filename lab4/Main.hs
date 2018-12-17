@@ -3,6 +3,7 @@ module Main where
 import Cards
 import Explodingkittens
 import System.Random
+import Test.QuickCheck hiding (shuffle)
 
 data Player = Player String
               deriving Show

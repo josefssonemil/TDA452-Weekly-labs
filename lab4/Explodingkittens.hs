@@ -2,6 +2,8 @@ module Explodingkittens where
 
 import Cards
 import System.Random
+import Test.QuickCheck hiding (shuffle)
+
 
 -- Integer = Amount of players
 createPlayDeck :: Integer -> Hand -> Hand
@@ -45,7 +47,7 @@ shuffleHelper g (h1 , h2) = if h1' == Empty then (h1' , Add c1 h2)
 
 getCard :: Integer -> Hand -> (Card,Hand)
 getCard n Empty = error "empty hand"
-getCard n hand | n < 0 || n > handLength hand = error "too large hand"
+getCard n hand | n < 0 || n >= handLength hand = error "too large hand"
 getCard 0 (Add card hand) = (card,hand)
 getCard n (Add card hand) = getCard (n-1) (hand <+ Add card Empty)
 
@@ -69,7 +71,26 @@ removeCard' n (Card m1) hand = if m1 == m2 then h
                                     (h <+ Add (Card m2) Empty) 
     where (Add (Card m2) h) = hand
           
+isEmpty :: Hand -> Bool
+isEmpty hand | handLength hand == 0 = True
+isEmpty hand | otherwise = False
 
+-- Needs to be in same order as the hand for possible indexing
+getModelList :: Hand -> [Model]
+getModelList Empty = []
+getModelList (Add (Card model) hand) = model : getModelList hand  
+
+prop_modelList_test :: Hand -> Bool
+prop_modelList_test Empty = True
+prop_modelList_test h | handLength h < 2 = True
+prop_modelList_test hand = (handLength hand) == (toInteger (length models)) &&
+                           (last models) == m2 && (head models) == m1 
+    where models = getModelList hand
+          (c1,d1) = getCard 0 hand 
+          (c2,d2) = getCard ((handLength hand)-1) hand
+          (Card m1) = c1
+          (Card m2) = c2
+  
 -- Player plays a card. Chooses the following function depending
 -- on card chosen
 
