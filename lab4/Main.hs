@@ -4,7 +4,7 @@ import Cards
 import Explodingkittens
 import System.Random
 
-data Player = Player String | Empty
+data Player = Player String
               deriving Show
 
 addNewPlayers :: IO [Player]

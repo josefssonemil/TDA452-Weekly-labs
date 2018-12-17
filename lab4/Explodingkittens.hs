@@ -64,14 +64,14 @@ draw deck hand n = draw (snd drawn) (Add (fst drawn) hand) (n-1)
 -- current types are just placeholders for now
 
 playCard :: Card -> Hand -> Hand
-playCard (Card model) hand
-                    | model == Skip = playSkip (Card model) hand
-                    | model == Defuse = playDefuse (Card model) hand
-                    | model == Favor = playFavor (Card model) hand
+playCard (Card model) hand = undefined
+                 --   | model == Skip = playSkip (Card model) hand
+                 --   | model == Defuse = playDefuse (Card model) hand
+                  --  | model == Favor = playFavor (Card model) hand
                    -- | model == Future = playFuture (Card model) hand
-                    | model == Catcard = playCatcard (Card model) hand
-                    | model == Nope = playNope (Card model) hand
-                    | model == Attack = playAttack (Card model) hand
+                   -- | model == Catcard = playCatcard (Card model) hand
+                   -- | model == Nope = playNope (Card model) hand
+                   -- | model == Attack = playAttack (Card model) hand
 
 
 
@@ -90,10 +90,13 @@ playDefuse = undefined
 playSkip :: Card -> Hand -> Hand
 playSkip = undefined
 
+-- Needs IO in gamelloop
 -- Plays the favor card: the other player must choose a card to give to
 -- the player that played the favor card
-playFavor :: Card -> Hand -> Hand
-playFavor = undefined
+-- first current players hand then opponent
+playFavor :: Integer -> Hand -> Hand -> (Hand,Hand)
+playFavor n h1 h2 = (Add (fst cardNhand) h1 , (snd cardNhand))
+    where cardNhand = getCard n h2
 
 -- Call in game loop
 -- Plays the shuffle card: shuffles the draw deck
@@ -105,9 +108,6 @@ playShuffle g hand = shuffle g hand
 playFuture :: Hand -> Hand
 playFuture Empty = Empty
 playFuture deck = snd( draw deck Empty 3)  
-
-
-
 
 playCatcard :: Card -> Hand -> Hand
 playCatcard = undefined
