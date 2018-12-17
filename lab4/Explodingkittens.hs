@@ -3,18 +3,18 @@ import System.Random
 -- Integer = Amount of players
 createPlayDeck :: Integer -> Hand -> Hand
 createPlaydeck n _ | n < 2 || n > 5  = error "Incorrect amount of players"
-createPlayDeck n h = (genarateCards Kitten (n-1)) <+
-                     (genarateCards Defuse 2) <+ h
+createPlayDeck n h = generateCards Kitten (n-1) <+
+                     (generateCards Defuse 2) <+ h
 
 createStandardDeck :: Hand
-createStandardDeck = (genarateCards Favor 4) <+ (genarateCards Skip 4) <+
-                     (genarateCards Shuffle 4) <+ (genarateCards Nope 5) <+
-                     (genarateCards Future 5) <+ (genarateCards Attack 4) <+
-                     (genarateCards Catcard 16)
+createStandardDeck = generateCards Favor 4 <+ generateCards Skip 4 <+
+                     generateCards Shuffle 4 <+ generateCards Nope 5 <+
+                     generateCards Future 5 <+ generateCards Attack 4 <+
+                     generateCards Catcard 16
 
-genarateCards :: Model -> Integer -> Hand
-genarateCards m n | n < 1 = Empty
-genarateCards m n  = Add (Card m) $ genarateCards m (n-1)
+generateCards :: Model -> Integer -> Hand
+generateCards m n | n < 1 = Empty
+generateCards m n  = Add (Card m) $ generateCards m (n-1)
 
 (<+) :: Hand -> Hand -> Hand
 (<+) h1 Empty = h1
@@ -58,8 +58,14 @@ playCard (Card model) hand
                     | model == Nope = playNope (Card model) hand
                     | model == Attack = playAttack (Card model) hand
 
-playDefuse :: Card -> Hand -> (Card, Hand)
-playDefuse = undefined
+-- Plays the defuse card: If player draws an exploding kitten, this card
+-- can be used to prevent dying. The player will then put the Exploding Kitten
+-- back into the pile wherever he wants
+
+-- Input: defuse card and players hand
+-- Output: players new hand and new deck
+playDefuse :: Card -> Hand -> (Hand, Hand)
+playDefuse card hand =
 
 playSkip :: Card -> Hand -> (Card, Hand)
 playSkip = undefined
