@@ -116,7 +116,7 @@ playFuture deck = snd( draw deck Empty 3)
 playCatcard :: StdGen -> Hand -> Hand -> (Hand,Hand)
 playCatcard g h1 h2 = (snd drawn , fst drawn)
     where x = shuffle g h2
-          drawn = draw x h1 0  
+          drawn = draw x h1 1  
 
 -- Plays the nope card: stops the action of the other player
 playNope :: Card -> Hand -> Hand
