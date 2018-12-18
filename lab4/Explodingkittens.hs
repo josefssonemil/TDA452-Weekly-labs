@@ -26,7 +26,11 @@ generateCards :: Model -> Integer -> Hand
 generateCards m n | n < 1 = Empty
 generateCards m n  = Add (Card m) $ generateCards m (n-1)
 
-
+-- Checks that the amount of generated cards corresponds with the wanted
+-- amount
+prop_generateCards_amountModel :: Model -> Integer -> Property
+prop_generateCards_amountModel m i = i > 0 ==>
+                                     handLength (generateCards m i) == i
 
 -- Creates the starting hands for the players
 createStartHands :: Integer -> Hand -> ([Hand],Hand)
@@ -48,6 +52,14 @@ rotate :: Int -> [a] -> [a]
 rotate n xs = drop k xs ++ take k xs
         where k = length xs - n
 
+
+prop_rotate :: Eq a => Int -> [a] -> Bool
+prop_rotate _ [] = True
+prop_rotate 0 list = rotate 0 list == list
+prop_rotate n list = length (rotate n list) == length list
+                  && rotate (n-1) (rotate (n+1) list) == list
+                  && rotate (length list) list == list
+                  && head (rotate 1 list) == last list
 -- Prints the hand as a (integer,model) list
 -- ex card 0 is a defuse : (0, Model Defuse)
 showHand :: Integer -> Hand -> [(Integer, Model)]
@@ -74,6 +86,13 @@ handLength' :: Hand -> Integer -> Integer
 handLength' Empty n = n
 handLength' (Add card hand) n = handLength' hand (n+1)
 
+
+prop_handLength :: Hand -> Bool
+prop_handLength Empty = handLength Empty == 0
+prop_handLength (Add card hand) = handLength hand + 1 ==
+                                handLength (Add card hand)
+                                && prop_handLength hand
+
 -- Returns the size of a list as an Integer
 sizeA :: [a] -> Integer
 sizeA list = toInteger (length list)
@@ -97,14 +116,26 @@ getCard n hand | n < 0 || n > handLength hand = error "too large hand"
 getCard 0 (Add card hand) = (card,hand)
 getCard n (Add card hand) = getCard (n-1) (hand <+ Add card Empty)
 
+prop_getCard :: Integer -> Hand -> Bool
+prop_getCard n hand | n < 0 || n > (handLength hand) = True
+prop_getCard n Empty = True
+prop_getCard _ (Add card hand) | hand == Empty = True
+prop_getCard 0 (Add card hand) = fst (getCard 0 (Add card hand)) == card
+prop_getCard n hand = handLength (snd(getCard (n-1) hand')) + 1
+                    == handLength (snd(getCard n hand))
+                    && prop_getCard (n-1) hand'
+    where (Add card hand') = hand
+
 -- Places a card at a given position in a given hand
 placeCard :: Integer -> Card -> Hand -> Hand
+placeCard n _ _ | n < 0 = error "Non allowed index"
 placeCard n card deck = h1 <+ Add card h2
     where (h1,h2) = placeCard' n (Empty,deck)
 
 placeCard' :: Integer -> (Hand,Hand) -> (Hand,Hand)
+placeCard' n (_, Empty) = error "Deck empty"
 placeCard' 0 (h1,h2) = (h1,h2)
-placeCard' n (h1,(Add card h2)) = placeCard' (n-1) ((Add card h1),h2)
+placeCard' n (h1, Add card h2) = placeCard' (n-1) (Add card h1,h2)
 
 
 --(Deck, hand), draws a card from the deck into the hand, returns
@@ -146,7 +177,7 @@ prop_modelList_test hand = (handLength hand) == (toInteger (length models)) &&
                            (last models) == m2 && (head models) == m1
     where models = getModelList hand
           (c1,d1) = getCard 0 hand
-          (c2,d2) = getCard ((handLength hand)-1) hand
+          (c2,d2) = getCard (handLength hand - 1) hand
           (Card m1) = c1
           (Card m2) = c2
 
