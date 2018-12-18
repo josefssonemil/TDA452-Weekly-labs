@@ -93,12 +93,12 @@ useDefuseCard playerHands deck = do
                         let ((p,h) :playerHands') = playerHands
                         let playerHands'' = (p,newHand'):playerHands'
                         let string = "Select position to put kitten: \n" ++ "From 0 -> "
-                        putStrLn (string ++ show (handLength deck - 1))
+                        putStrLn (string ++ show (handLength deck))
                         r <- getLine
                         let n = read r :: Integer
                         let newDeck = placeCard n (Card Kitten) deck
                         putStrLn "Used defuse card to survive kitten!"
-                        gameLoop playerHands'' newDeck
+                        gameLoop (rotate 1 playerHands'') newDeck
 
           where hand = snd (head playerHands)
 
@@ -130,10 +130,10 @@ playCard k playerHands deck = do
       when (m == Catcard) $ do
         putStrLn "Catcard played \n"
         g <- newStdGen
-        let (h1,h2) = playCatcard g removed (snd (last newPlrHds))
-        let ((p1,h1') : newPlrHds') = newPlrHds
-        let ((p2,h2') : newPlrHds'') = newPlrHds'
-        let updatedPlayHands = (p1,h1) : (p2,h2) : newPlrHds''
+        let ((p1,h1) : newPlrHds') = newPlrHds
+        let ((p2,h2) : newPlrHds'') = newPlrHds'
+        let (h1',h2') = playCatcard g h1 h2
+        let updatedPlayHands = (p1,h1') : (p2,h2') : newPlrHds''
         gameLoop updatedPlayHands deck
       when (m == Defuse) $ do
         let ((p1,h1) : newPlrHds') = newPlrHds
