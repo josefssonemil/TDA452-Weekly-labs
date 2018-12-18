@@ -4,6 +4,7 @@ import Cards
 import Explodingkittens
 import System.Random
 import Test.QuickCheck hiding (shuffle)
+import Data.Char
 
 data Player = Player String
               deriving (Show, Eq)
@@ -47,22 +48,41 @@ start = do putStrLn "Welcome to Exploding Kittens. Make your choice:"
            let playerHands = zip players hands
            let deck'' = createPlayDeck (sizeA players) deck'
            let deck''' = shuffle g2 deck''
-           putStrLn "Start Screen Over. Lets play!!"
+           putStrLn "Everyone is here. Lets play!!"
            gameLoop playerHands deck'''
 
+printPlayerHand :: (Player,Hand) -> IO()
+printPlayerHand (p,h) = do let x = showHand 0 h
+                           let y = showHandString x
+                           let str = "Its " ++ (getPlayerName p) ++ "s turn!"
+                           let str1 = "Press [n] to skip playing a card"
+                           putStrLn (str ++ "\n" ++ y ++ str1) 
 
 
 gameLoop :: [(Player,Hand)] -> Hand -> IO()
 gameLoop playerHands deck | length playerHands == 1 =
                             winner (fst (head playerHands))
 gameLoop playerHands deck = do
-                            let currentHand = showHand 0 (snd current)
-                            putStrLn (show(fst current) ++ " \n" ++ showHandString currentHand)
+                            printPlayerHand current
+                            n <- getChar
+                            let k =  toInteger (digitToInt k)
+                            if n == "n" then putStrLn "Did not play anything"
+                            else do let gameInfo = playCard k playerHands deck
+                                    let deck' = snd gameInfo 
+                                    let playerHands'' = fst gameInfo
+                            
 
           where playerHands' = rotate 1 playerHands
-                current = head playerHands
+                current = head playerHands'
 
 
+--Current player is head of tuple list
+playCard :: Integer -> [(Player, Hand)] -> Hand -> ([(Player,Hand)], Hand)
+playCard k playerHands deck =  
+
+
+
+ 
 
 winner :: Player -> IO()
 winner (Player name) = putStrLn ("Winner is: " ++ name)
