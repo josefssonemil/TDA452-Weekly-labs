@@ -4,7 +4,8 @@ import Cards
 import System.Random
 import Test.QuickCheck hiding (shuffle)
 
-
+data Player = Player String
+              deriving (Show, Eq)
 -- Integer = Amount of players
 createPlayDeck :: Integer -> Hand -> Hand
 createPlaydeck n _ | n < 2 || n > 5  = error "Incorrect amount of players"
@@ -42,9 +43,9 @@ createStartHand deck = (deck' , Add (Card Defuse) hand)
           where (deck', hand) = draw deck Empty 7
 
 
-
 rotate :: Int -> [a] -> [a]
-rotate n xs = take (length xs) (drop n (cycle xs))
+rotate n xs = drop k xs ++ take k xs
+        where k = length xs - n
 
 showHand :: Integer -> Hand -> [(Integer, Model)]
 showHand n Empty = []
@@ -83,7 +84,7 @@ shuffleHelper g (h1 , h2) = if h1' == Empty then (h1' , Add c1 h2)
 
 getCard :: Integer -> Hand -> (Card,Hand)
 getCard n Empty = error "empty hand"
-getCard n hand | n < 0 || n >= handLength hand = error "too large hand"
+getCard n hand | n < 0 || n > handLength hand = error "too large hand"
 getCard 0 (Add card hand) = (card,hand)
 getCard n (Add card hand) = getCard (n-1) (hand <+ Add card Empty)
 
@@ -134,8 +135,8 @@ prop_modelList_test hand = (handLength hand) == (toInteger (length models)) &&
 -- so they correspond with each action card. Needs to be discussed,
 -- current types are just placeholders for now
 
-playCard :: Card -> Hand -> Hand
-playCard (Card model) hand = undefined
+--playCard :: Card -> Hand -> Hand
+--playCard (Card model) hand = undefined
                  --   | model == Skip = playSkip (Card model) hand
                  --   | model == Defuse = playDefuse (Card model) hand
                   --  | model == Favor = playFavor (Card model) hand
@@ -144,6 +145,30 @@ playCard (Card model) hand = undefined
                    -- | model == Nope = playNope (Card model) hand
                    -- | model == Attack = playAttack (Card model) hand
 
+
+retrieveCard :: Integer -> Hand -> Card
+retrieveCard 0 (Add card hand) = card
+retrieveCard n (Add card hand) = retrieveCard (n-1) hand
+
+
+--Current player is head of tuple list
+playCard :: Integer -> [(Player, Hand)] -> Hand -> ([(Player,Hand)], Hand)
+playCard k playerHands deck = playCard' (retrieveCard k h) playerHands deck
+          where ((p,h) : playerHands') = playerHands
+
+playCard' :: Card -> [(Player, Hand)] -> Hand -> ([(Player,Hand)], Hand)
+playCard' (Card m) playerHands deck | m == Favor = playFavor playerHands'' deck
+                                    | m == Skip = ([], Empty)
+                                    | m == Defuse = ([], Empty)
+                                    | m == Attack = ([], Empty)
+                                    | m == Catcard = ([], Empty)
+                                    | m == Nope = ([], Empty)
+                                    | m == Future = ([], Empty)
+                                    | otherwise = ([], Empty)
+
+            where (p,h) : playerHands' = playerHands
+                  h' = removeCard (Card m) h
+                  playerHands'' = (p,h'):playerHands'
 
 hasCard :: Card -> Hand -> Bool
 hasCard c h = handLength h /= handLength h'
@@ -170,9 +195,12 @@ playSkip = undefined
 -- Plays the favor card: the other player must choose a card to give to
 -- the player that played the favor card
 -- first current players hand then opponent
-playFavor :: Integer -> Hand -> Hand -> (Hand,Hand)
-playFavor n h1 h2 = (Add (fst cardNhand) h1 , (snd cardNhand))
-    where cardNhand = getCard n h2
+-- gets top card for now
+playFavor :: [(Player, Hand)] -> Hand -> ([(Player,Hand)], Hand)
+playFavor playerHands deck = (( (p1,(Add c h1)) : (p2,h2') : playerHands''),deck)
+    where ((p1,h1) : playerHands') = playerHands
+          ((p2,h2) : playerHands'') = playerHands'
+          (Add c h2') = h2
 
 -- Call in game loop
 -- Plays the shuffle card: shuffles the draw deck

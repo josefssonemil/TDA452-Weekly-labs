@@ -6,8 +6,7 @@ import System.Random
 import Test.QuickCheck hiding (shuffle)
 import Data.Char
 
-data Player = Player String
-              deriving (Show, Eq)
+
 
 addNewPlayers :: IO [Player]
 addNewPlayers = addNewPlayers'
@@ -52,11 +51,12 @@ start = do putStrLn "Welcome to Exploding Kittens. Make your choice:"
            gameLoop playerHands deck'''
 
 printPlayerHand :: (Player,Hand) -> IO()
+printPlayerHand (_,Empty) = putStrLn "retard"
 printPlayerHand (p,h) = do let x = showHand 0 h
                            let y = showHandString x
                            let str = "Its " ++ (getPlayerName p) ++ "s turn!"
                            let str1 = "Press [n] to skip playing a card"
-                           putStrLn (str ++ "\n" ++ y ++ str1) 
+                           putStrLn (str ++ "\n" ++ y ++ str1)
 
 
 gameLoop :: [(Player,Hand)] -> Hand -> IO()
@@ -64,25 +64,39 @@ gameLoop playerHands deck | length playerHands == 1 =
                             winner (fst (head playerHands))
 gameLoop playerHands deck = do
                             printPlayerHand current
+                            --printPlayerHand (last playerHands)
                             n <- getChar
-                            let k =  toInteger (digitToInt k)
-                            if n == "n" then putStrLn "Did not play anything"
-                            else do let gameInfo = playCard k playerHands deck
-                                    let deck' = snd gameInfo 
+                            let k =  toInteger (digitToInt n)
+                            if n == 'n' then do
+                                let drawnCard = draw deck (snd (current)) 1
+                                let newDeck = snd drawnCard
+                                let newHand = fst drawnCard
+                                let (p,h): playerHands' = playerHands
+                                let playerHands'' = (p,newHand) : playerHands'
+                                gameLoop (rotate 1 playerHands'') newDeck
+                            else do {let gameInfo = playCard k playerHands deck
+                                    ;
+                                    let deck' = snd gameInfo
+                                    ;
                                     let playerHands'' = fst gameInfo
-                            
+                                    ;
+                                    --printPlayerHand (head playerHands'')
 
-          where playerHands' = rotate 1 playerHands
-                current = head playerHands'
+                                    gameLoop playerHands'' deck'
+                                    }
 
-
---Current player is head of tuple list
-playCard :: Integer -> [(Player, Hand)] -> Hand -> ([(Player,Hand)], Hand)
-playCard k playerHands deck =  
+                            --gameLoop playerHands'' deck'
 
 
+          where --playerHands' = rotate 1 playerHands
+                current = head playerHands
 
- 
+
+
+
+
+
+
 
 winner :: Player -> IO()
 winner (Player name) = putStrLn ("Winner is: " ++ name)
