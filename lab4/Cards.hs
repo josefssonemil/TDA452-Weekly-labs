@@ -1,13 +1,15 @@
 module Cards where
 import Test.QuickCheck
 
+
+-- Much of this is taken from the previous Blackjack lab
 -- A card does only consist of a type (model)
 data Card = Card {model :: Model}
             deriving (Show, Eq)
 
 -- Type of card
 data Model = Kitten | Skip | Favor | Shuffle | Future |
-            Catcard | Nope | Defuse | Attack
+            Catcard | Defuse
             deriving (Show, Eq)
 
 -- Generating arbitary cards
@@ -19,7 +21,7 @@ instance Arbitrary Card where
 instance Arbitrary Model where
          arbitrary = oneof [return Kitten, return Skip, return Favor,
                            return Shuffle ,return Future, return Catcard,
-                           return Nope, return Defuse, return Attack]
+                           return Defuse]
 
 data Hand = Empty | Add Card Hand
             deriving (Show , Eq)

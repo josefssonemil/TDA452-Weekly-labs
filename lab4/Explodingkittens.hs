@@ -6,29 +6,29 @@ import Test.QuickCheck hiding (shuffle)
 
 data Player = Player String
               deriving (Show, Eq)
--- Integer = Amount of players
+
+
+-- Creates, depending on amount of players, a deck consisting of
+-- player-dependent cards
 createPlayDeck :: Integer -> Hand -> Hand
 createPlaydeck n _ | n < 2 || n > 5  = error "Incorrect amount of players"
-createPlayDeck n h = generateCards Kitten (n-1) <+
+createPlayDeck n h = generateCards Kitten (n - 1) <+
                      generateCards Defuse 2 <+ h
 
---only 8 catcard, modified rules
+-- Creates the standard deck containing all the cards needed
 createStandardDeck :: Hand
 createStandardDeck = generateCards Favor 4 <+ generateCards Skip 4 <+
-                     generateCards Shuffle 4 <+ generateCards Nope 5 <+
-                     generateCards Future 5 <+ generateCards Attack 4 <+
-                     generateCards Catcard 8
+                     generateCards Shuffle 4 <+ generateCards Future 5 <+
+                     generateCards Catcard 5
 
+-- Helper function which just generates cards recursively
 generateCards :: Model -> Integer -> Hand
 generateCards m n | n < 1 = Empty
 generateCards m n  = Add (Card m) $ generateCards m (n-1)
 
---createStartHands :: [Player] -> Hand -> ([(Player, Hand)], Hand)
---createStartHands player:players deck = ((player, hand)
-  --                                   : fst (createStartHands players deck')
-    --                                  , )
-      --           where (deck',hand) = createStartHand deck
 
+
+-- Creates the starting hands for the players
 createStartHands :: Integer -> Hand -> ([Hand],Hand)
 createStartHands 0 deck = ([],deck)
 createStartHands _ Empty = ([Empty],Empty)
@@ -36,31 +36,37 @@ createStartHands n deck = (hand : hands , deck'')
     where (deck', hand) = createStartHand deck
           (hands , deck'') = createStartHands (n-1) deck'
 
--- Deck then hand
+-- (Deck, Hand)
 createStartHand :: Hand -> (Hand, Hand)
 createStartHand deck = (deck' , Add (Card Defuse) hand)
 
           where (deck', hand) = draw deck Empty 7
 
 
+-- Right shifting (rotating) a list with n steps
 rotate :: Int -> [a] -> [a]
 rotate n xs = drop k xs ++ take k xs
         where k = length xs - n
 
+-- Prints the hand as a (integer,model) list
+-- ex card 0 is a defuse : (0, Model Defuse)
 showHand :: Integer -> Hand -> [(Integer, Model)]
 showHand n Empty = []
 showHand n (Add (Card model) hand) = (n, model) : showHand (n + 1) hand
 
+-- Prints the hand as a string
 showHandString :: [(Integer, Model)] -> String
 showHandString [] = ""
 showHandString list = show (fst el) ++ ": " ++ show (snd el) ++ " " ++ "\n" ++ showHandString list'
                     where (el:list') = list
 
+-- Operator that adds a hand to another one
 (<+) :: Hand -> Hand -> Hand
 (<+) h1 Empty = h1
 (<+) Empty h2 = h2
 (<+) (Add card hand) h2 = Add card (hand<+h2)
 
+-- Returns the length of a hand
 handLength :: Hand -> Integer
 handLength h = handLength' h 0
 
@@ -68,9 +74,11 @@ handLength' :: Hand -> Integer -> Integer
 handLength' Empty n = n
 handLength' (Add card hand) n = handLength' hand (n+1)
 
+-- Returns the size of a list as an Integer
 sizeA :: [a] -> Integer
 sizeA list = toInteger (length list)
 
+-- Shuffles a hand (deck)
 shuffle :: StdGen -> Hand -> Hand
 shuffle g Empty = Empty
 shuffle g hand = snd ( shuffleHelper g (hand,Empty) )
@@ -82,11 +90,22 @@ shuffleHelper g (h1 , h2) = if h1' == Empty then (h1' , Add c1 h2)
           (c1 , h1') = getCard n h1
 
 
+-- Returns the card at the given index and the hand inputted
 getCard :: Integer -> Hand -> (Card,Hand)
 getCard n Empty = error "empty hand"
 getCard n hand | n < 0 || n > handLength hand = error "too large hand"
 getCard 0 (Add card hand) = (card,hand)
 getCard n (Add card hand) = getCard (n-1) (hand <+ Add card Empty)
+
+-- Places a card at a given position in a given hand
+placeCard :: Integer -> Card -> Hand -> Hand
+placeCard n card deck = h1 <+ Add card h2
+    where (h1,h2) = placeCard' n (Empty,deck)
+
+placeCard' :: Integer -> (Hand,Hand) -> (Hand,Hand)
+placeCard' 0 (h1,h2) = (h1,h2)
+placeCard' n (h1,(Add card h2)) = placeCard' (n-1) ((Add card h1),h2)
+
 
 --Deck then hand
 draw :: Hand -> Hand -> Integer -> (Hand,Hand)
@@ -128,47 +147,11 @@ prop_modelList_test hand = (handLength hand) == (toInteger (length models)) &&
           (Card m1) = c1
           (Card m2) = c2
 
--- Player plays a card. Chooses the following function depending
--- on card chosen
-
--- TODO: fix the input/output in functions
--- so they correspond with each action card. Needs to be discussed,
--- current types are just placeholders for now
-
---playCard :: Card -> Hand -> Hand
---playCard (Card model) hand = undefined
-                 --   | model == Skip = playSkip (Card model) hand
-                 --   | model == Defuse = playDefuse (Card model) hand
-                  --  | model == Favor = playFavor (Card model) hand
-                   -- | model == Future = playFuture (Card model) hand
-                   -- | model == Catcard = playCatcard (Card model) hand
-                   -- | model == Nope = playNope (Card model) hand
-                   -- | model == Attack = playAttack (Card model) hand
-
 
 retrieveCard :: Integer -> Hand -> Card
 retrieveCard 0 (Add card hand) = card
 retrieveCard n (Add card hand) = retrieveCard (n-1) hand
 
-
---Current player is head of tuple list
-playCard :: Integer -> [(Player, Hand)] -> Hand -> ([(Player,Hand)], Hand)
-playCard k playerHands deck = playCard' (retrieveCard k h) playerHands deck
-          where ((p,h) : playerHands') = playerHands
-
-playCard' :: Card -> [(Player, Hand)] -> Hand -> ([(Player,Hand)], Hand)
-playCard' (Card m) playerHands deck | m == Favor = playFavor playerHands'' deck
-                                    | m == Skip = ([], Empty)
-                                    | m == Defuse = ([], Empty)
-                                    | m == Attack = ([], Empty)
-                                    | m == Catcard = ([], Empty)
-                                    | m == Nope = ([], Empty)
-                                    | m == Future = ([], Empty)
-                                    | otherwise = ([], Empty)
-
-            where (p,h) : playerHands' = playerHands
-                  h' = removeCard (Card m) h
-                  playerHands'' = (p,h'):playerHands'
 
 hasCard :: Card -> Hand -> Bool
 hasCard c h = handLength h /= handLength h'
@@ -185,19 +168,14 @@ hasCard c h = handLength h /= handLength h'
 playDefuse :: Card -> Hand -> Hand
 playDefuse = undefined
 
--- Plays the skip card: players turn ends without having to draw a new card
--- Input: player hand and card
--- Output: player hand without skip card
-playSkip :: Card -> Hand -> Hand
-playSkip = undefined
 
 -- Needs IO in gamelloop
 -- Plays the favor card: the other player must choose a card to give to
 -- the player that played the favor card
 -- first current players hand then opponent
 -- gets top card for now
-playFavor :: [(Player, Hand)] -> Hand -> ([(Player,Hand)], Hand)
-playFavor playerHands deck = (( (p1,(Add c h1)) : (p2,h2') : playerHands''),deck)
+playFavor :: [(Player, Hand)] -> [(Player,Hand)]
+playFavor playerHands = (p1,(Add c h1)) : (p2,h2') : playerHands''
     where ((p1,h1) : playerHands') = playerHands
           ((p2,h2) : playerHands'') = playerHands'
           (Add c h2') = h2
@@ -211,7 +189,8 @@ playShuffle g hand = shuffle g hand
 -- Plays the future card: player may view the top 3 cards in the draw deck
 playFuture :: Hand -> Hand
 playFuture Empty = Empty
-playFuture deck = snd( draw deck Empty 3)
+playFuture deck = snd (draw hand Empty 3)
+    where (deck',hand) = draw deck Empty 3
 
 -- Needs fixing
 -- Start with only 1 catcard
@@ -222,6 +201,7 @@ playCatcard g h1 h2 = (snd drawn , fst drawn)
           drawn = draw x h1 1
 
 -- Plays the nope card: stops the action of the other player
+-- No time to implement before deadline
 playNope :: Card -> Hand -> Hand
 playNope = undefined
 
