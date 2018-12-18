@@ -29,7 +29,7 @@ instance Arbitrary Hand where
                        , (10, do card <- arbitrary
                                  hand <- arbitrary
                                  return (Add card hand))]
-                       
+
 size :: Num a => Hand -> a
 size Empty = 0
 size (Add card hand) = 1 + size hand

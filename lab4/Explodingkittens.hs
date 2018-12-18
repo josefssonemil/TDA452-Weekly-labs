@@ -22,6 +22,39 @@ generateCards :: Model -> Integer -> Hand
 generateCards m n | n < 1 = Empty
 generateCards m n  = Add (Card m) $ generateCards m (n-1)
 
+--createStartHands :: [Player] -> Hand -> ([(Player, Hand)], Hand)
+--createStartHands player:players deck = ((player, hand)
+  --                                   : fst (createStartHands players deck')
+    --                                  , )
+      --           where (deck',hand) = createStartHand deck
+
+createStartHands :: Integer -> Hand -> ([Hand],Hand)
+createStartHands 0 deck = ([],deck)
+createStartHands _ Empty = ([Empty],Empty)
+createStartHands n deck = (hand : hands , deck'')
+    where (deck', hand) = createStartHand deck
+          (hands , deck'') = createStartHands (n-1) deck'
+
+-- Deck then hand
+createStartHand :: Hand -> (Hand, Hand)
+createStartHand deck = (deck' , Add (Card Defuse) hand)
+
+          where (deck', hand) = draw deck Empty 7
+
+
+
+rotate :: Int -> [a] -> [a]
+rotate n xs = take (length xs) (drop n (cycle xs))
+
+showHand :: Integer -> Hand -> [(Integer, Model)]
+showHand n Empty = []
+showHand n (Add (Card model) hand) = (n, model) : showHand (n + 1) hand
+
+showHandString :: [(Integer, Model)] -> String
+showHandString [] = ""
+showHandString list = show (fst el) ++ ": " ++ show (snd el) ++ " " ++ "\n" ++ showHandString list'
+                    where (el:list') = list
+
 (<+) :: Hand -> Hand -> Hand
 (<+) h1 Empty = h1
 (<+) Empty h2 = h2
@@ -33,6 +66,9 @@ handLength h = handLength' h 0
 handLength' :: Hand -> Integer -> Integer
 handLength' Empty n = n
 handLength' (Add card hand) n = handLength' hand (n+1)
+
+sizeA :: [a] -> Integer
+sizeA list = toInteger (length list)
 
 shuffle :: StdGen -> Hand -> Hand
 shuffle g Empty = Empty
@@ -57,7 +93,7 @@ draw Empty hand _ = (Empty,hand)
 draw deck hand 0 = (deck,hand)
 draw deck hand n = draw (snd drawn) (Add (fst drawn) hand) (n-1)
     where drawn = getCard 0 deck
-   
+
 --remove first occorence of card in hand
 removeCard :: Card -> Hand -> Hand
 removeCard c Empty = Empty
@@ -66,11 +102,11 @@ removeCard c h = removeCard' (handLength h) c h
 removeCard' :: Integer -> Card -> Hand -> Hand
 removeCard' n c Empty = Empty
 removeCard' 0 _ hand = hand
-removeCard' n (Card m1) hand = if m1 == m2 then h 
-                               else removeCard' (n-1) (Card m1) 
-                                    (h <+ Add (Card m2) Empty) 
+removeCard' n (Card m1) hand = if m1 == m2 then h
+                               else removeCard' (n-1) (Card m1)
+                                    (h <+ Add (Card m2) Empty)
     where (Add (Card m2) h) = hand
-          
+
 isEmpty :: Hand -> Bool
 isEmpty hand | handLength hand == 0 = True
 isEmpty hand | otherwise = False
@@ -78,23 +114,23 @@ isEmpty hand | otherwise = False
 -- Needs to be in same order as the hand for possible indexing
 getModelList :: Hand -> [Model]
 getModelList Empty = []
-getModelList (Add (Card model) hand) = model : getModelList hand  
+getModelList (Add (Card model) hand) = model : getModelList hand
 
 prop_modelList_test :: Hand -> Bool
 prop_modelList_test Empty = True
 prop_modelList_test h | handLength h < 2 = True
 prop_modelList_test hand = (handLength hand) == (toInteger (length models)) &&
-                           (last models) == m2 && (head models) == m1 
+                           (last models) == m2 && (head models) == m1
     where models = getModelList hand
-          (c1,d1) = getCard 0 hand 
+          (c1,d1) = getCard 0 hand
           (c2,d2) = getCard ((handLength hand)-1) hand
           (Card m1) = c1
           (Card m2) = c2
-  
+
 -- Player plays a card. Chooses the following function depending
 -- on card chosen
 
--- TODO: fix the input/output in functions 
+-- TODO: fix the input/output in functions
 -- so they correspond with each action card. Needs to be discussed,
 -- current types are just placeholders for now
 
@@ -108,6 +144,11 @@ playCard (Card model) hand = undefined
                    -- | model == Nope = playNope (Card model) hand
                    -- | model == Attack = playAttack (Card model) hand
 
+
+hasCard :: Card -> Hand -> Bool
+hasCard c h = handLength h /= handLength h'
+
+          where h' = removeCard c h
 
 
 -- Plays the defuse card: If player draws an exploding kitten, this card
@@ -142,7 +183,7 @@ playShuffle g hand = shuffle g hand
 -- Plays the future card: player may view the top 3 cards in the draw deck
 playFuture :: Hand -> Hand
 playFuture Empty = Empty
-playFuture deck = snd( draw deck Empty 3)  
+playFuture deck = snd( draw deck Empty 3)
 
 -- Needs fixing
 -- Start with only 1 catcard
@@ -150,7 +191,7 @@ playFuture deck = snd( draw deck Empty 3)
 playCatcard :: StdGen -> Hand -> Hand -> (Hand,Hand)
 playCatcard g h1 h2 = (snd drawn , fst drawn)
     where x = shuffle g h2
-          drawn = draw x h1 1  
+          drawn = draw x h1 1
 
 -- Plays the nope card: stops the action of the other player
 playNope :: Card -> Hand -> Hand
