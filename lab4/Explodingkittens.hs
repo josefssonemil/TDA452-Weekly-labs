@@ -107,14 +107,15 @@ placeCard' 0 (h1,h2) = (h1,h2)
 placeCard' n (h1,(Add card h2)) = placeCard' (n-1) ((Add card h1),h2)
 
 
---Deck then hand
+--(Deck, hand), draws a card from the deck into the hand, returns
+-- updated hand and deck
 draw :: Hand -> Hand -> Integer -> (Hand,Hand)
 draw Empty hand _ = (Empty,hand)
 draw deck hand 0 = (deck,hand)
 draw deck hand n = draw (snd drawn) (Add (fst drawn) hand) (n-1)
     where drawn = getCard 0 deck
 
---remove first occorence of card in hand
+-- Removes the first occurence of a card in a hand
 removeCard :: Card -> Hand -> Hand
 removeCard c Empty = Empty
 removeCard c h = removeCard' (handLength h) c h
@@ -127,11 +128,13 @@ removeCard' n (Card m1) hand = if m1 == m2 then h
                                     (h <+ Add (Card m2) Empty)
     where (Add (Card m2) h) = hand
 
+
+-- Returns true of hand is empty
 isEmpty :: Hand -> Bool
 isEmpty hand | handLength hand == 0 = True
 isEmpty hand | otherwise = False
 
--- Needs to be in same order as the hand for possible indexing
+-- Returns a list of models of the cards in a hand
 getModelList :: Hand -> [Model]
 getModelList Empty = []
 getModelList (Add (Card model) hand) = model : getModelList hand
@@ -148,34 +151,22 @@ prop_modelList_test hand = (handLength hand) == (toInteger (length models)) &&
           (Card m2) = c2
 
 
+-- Retrieves a card, without deleting it, from a hand
 retrieveCard :: Integer -> Hand -> Card
 retrieveCard 0 (Add card hand) = card
 retrieveCard n (Add card hand) = retrieveCard (n-1) hand
 
-
+-- Returns true if hand holds a given card model
 hasCard :: Card -> Hand -> Bool
 hasCard c h = handLength h /= handLength h'
 
           where h' = removeCard c h
 
 
--- Plays the defuse card: If player draws an exploding kitten, this card
--- can be used to prevent dying. The player will then put the Exploding Kitten
--- back into the pile wherever he wants
-
--- Input: defuse card and players hand
--- Output: players new hand and new deck
-playDefuse :: Card -> Hand -> Hand
-playDefuse = undefined
-
-
--- Needs IO in gamelloop
--- Plays the favor card: the other player must choose a card to give to
--- the player that played the favor card
--- first current players hand then opponent
--- gets top card for now
+-- Plays the favor card: the other player must give his top card to the player
+-- that played the defuse card
 playFavor :: [(Player, Hand)] -> [(Player,Hand)]
-playFavor playerHands = (p1,(Add c h1)) : (p2,h2') : playerHands''
+playFavor playerHands = (p1, Add c h1) : (p2,h2') : playerHands''
     where ((p1,h1) : playerHands') = playerHands
           ((p2,h2) : playerHands'') = playerHands'
           (Add c h2') = h2
@@ -185,16 +176,15 @@ playFavor playerHands = (p1,(Add c h1)) : (p2,h2') : playerHands''
 playShuffle :: StdGen -> Hand -> Hand
 playShuffle g hand = shuffle g hand
 
--- Takes deck, gives top 3 cards
+
 -- Plays the future card: player may view the top 3 cards in the draw deck
 playFuture :: Hand -> Hand
 playFuture Empty = Empty
 playFuture deck = snd (draw hand Empty 3)
     where (deck',hand) = draw deck Empty 3
 
--- Needs fixing
--- Start with only 1 catcard
--- Current first then opponent
+
+-- Shuffles the opponent hand and then takes a card from it
 playCatcard :: StdGen -> Hand -> Hand -> (Hand,Hand)
 playCatcard g h1 h2 = (snd drawn , fst drawn)
     where x = shuffle g h2
@@ -205,6 +195,7 @@ playCatcard g h1 h2 = (snd drawn , fst drawn)
 playNope :: Card -> Hand -> Hand
 playNope = undefined
 
--- Plays the attack card: ??
+-- Plays the attack card:
+-- No time to implement before deadline
 playAttack :: Card -> Hand -> Hand
 playAttack = undefined

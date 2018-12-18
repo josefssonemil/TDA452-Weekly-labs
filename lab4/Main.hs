@@ -16,26 +16,25 @@ addNewPlayers' :: IO [Player]
 addNewPlayers' =      do   player <- addNewPlayer
                            putStrLn "Add another player? [y]"
                            n <- getLine
-                           if (n == "y") then do
+                           if n == "y" then do
                              players <- addNewPlayers'
                              return (player : players)
                            else
-                             return (player : [])
+                             return [player]
 
-                           --if (player /= Empty)
-                           --else return list
-
+-- Adds a new player to the game
 addNewPlayer :: IO Player
 addNewPlayer = do putStrLn "Set player name: "
                   name <- getLine
                   return (Player name)
 
-
-
-
 getPlayerName :: Player -> String
 getPlayerName (Player name) = name
 
+-- Starting part of the game
+-- First it creates the players and generates their starting hands as well
+-- as the deck. Afterwards it calls the gameloop and gives it
+-- the players, their hands and the deck
 start :: IO ()
 start = do putStrLn "Welcome to Exploding Kittens. Make your choice:"
            players <- addNewPlayers
@@ -53,14 +52,19 @@ start = do putStrLn "Welcome to Exploding Kittens. Make your choice:"
            putStrLn "Everyone is here. Lets play!!"
            gameLoop playerHands deck'''
 
+
+-- Prints a player hand at each new round
 printPlayerHand :: (Player,Hand) -> IO()
 printPlayerHand (_,Empty) = putStrLn "Empty hand"
 printPlayerHand (p,h) = do let x = showHand 0 h
                            let y = showHandString x
-                           let str = "Its " ++ (getPlayerName p) ++ "s turn!"
+                           let str = "Its " ++ getPlayerName p ++ "s turn!"
                            let str1 = "Press [n] to skip playing a card"
                            putStrLn (str ++ "\n" ++ y ++ str1)
 
+-- The turn for a player ends, where they draw a card from the deck
+-- It also checks whether the drawn card is a Kitten, and checks if
+-- the player has a defuse card available to avoid loss.
 endTurnAndDraw :: [(Player,Hand)] -> Hand -> IO()
 endTurnAndDraw playerHands deck = do
   let drawnCard = draw deck (snd current) 1
@@ -71,17 +75,17 @@ endTurnAndDraw playerHands deck = do
 
   let (Card model) = retrieveCard 0 newHand
   when (model == Kitten) $ do
-    when (not (hasCard (Card Defuse) (snd drawnCard))) $ do
+    unless (hasCard (Card Defuse) (snd drawnCard)) $ do
       let updatedPlayers = tail playerHands''
-      putStrLn ("Player " ++  getPlayerName (fst(head (playerHands))) ++  " died" ++ "\n")
+      putStrLn ("Player " ++  getPlayerName (fst(head playerHands)) ++  " died" ++ "\n")
       gameLoop updatedPlayers deck
     useDefuseCard playerHands'' newDeck
-
-
 
   gameLoop (rotate 1 playerHands'') newDeck
       where current = head playerHands
 
+-- Uses the defuse card to avoid losing, and lets player put
+-- the kitten back into the deck at a given position
 useDefuseCard :: [(Player,Hand)] -> Hand -> IO()
 useDefuseCard playerHands deck = do
                         let newHand = removeCard (Card Defuse) hand
@@ -89,7 +93,7 @@ useDefuseCard playerHands deck = do
                         let ((p,h) :playerHands') = playerHands
                         let playerHands'' = (p,newHand'):playerHands'
                         let string = "Select position to put kitten: \n" ++ "From 0 -> "
-                        putStrLn (string ++ (show (handLength deck - 1)))
+                        putStrLn (string ++ show (handLength deck - 1))
                         r <- getLine
                         let n = read r :: Integer
                         let newDeck = placeCard n (Card Kitten) deck
@@ -98,6 +102,8 @@ useDefuseCard playerHands deck = do
 
           where hand = snd (head playerHands)
 
+-- Player plays a card, checks what the model type is and
+-- does different things accordingly.
 playCard :: Integer -> [(Player,Hand)] -> Hand -> IO()
 playCard k playerHands deck = do
       let (Card m) = retrieveCard k (snd current)
@@ -124,7 +130,7 @@ playCard k playerHands deck = do
       when (m == Catcard) $ do
         putStrLn "Catcard played \n"
         g <- newStdGen
-        let (h1,h2) = playCatcard g removed (snd (last (newPlrHds)))
+        let (h1,h2) = playCatcard g removed (snd (last newPlrHds))
         let ((p1,h1') : newPlrHds') = newPlrHds
         let ((p2,h2') : newPlrHds'') = newPlrHds'
         let updatedPlayHands = (p1,h1) : (p2,h2) : newPlrHds''
@@ -133,9 +139,11 @@ playCard k playerHands deck = do
         let ((p1,h1) : newPlrHds') = newPlrHds
         let newPlrHds'' = (p1, Add (Card Defuse) h1) : newPlrHds'
         gameLoop newPlrHds'' deck
-        
+
     where current = head playerHands
 
+-- The main game loop which handles the user input and
+-- calls the other functions
 gameLoop :: [(Player,Hand)] -> Hand -> IO()
 gameLoop playerHands deck | length playerHands == 1 =
                             winner (fst (head playerHands))
@@ -146,7 +154,6 @@ gameLoop playerHands deck = do
                             n <- getLine
                             let k = read n :: Integer
                             putStrLn "\n"
-                            --let k =  toInteger (digitToInt n)
                             if head n == 'n' then endTurnAndDraw playerHands deck
                               else playCard k playerHands deck
           where current = head playerHands
@@ -157,7 +164,8 @@ gameLoop playerHands deck = do
 
 
 
-
+-- Prints the winner. Right now the game 'keeps going' even though a player
+-- has lost.
 winner :: Player -> IO()
 winner (Player name) = putStrLn ("Winner is: " ++ name)
 

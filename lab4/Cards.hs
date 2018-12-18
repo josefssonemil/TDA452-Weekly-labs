@@ -7,7 +7,8 @@ import Test.QuickCheck
 data Card = Card {model :: Model}
             deriving (Show, Eq)
 
--- Type of card
+-- Type of card (this should also hold the Attack and Nope cards, but they
+-- are not implemented)
 data Model = Kitten | Skip | Favor | Shuffle | Future |
             Catcard | Defuse
             deriving (Show, Eq)
@@ -32,6 +33,7 @@ instance Arbitrary Hand where
                                  hand <- arbitrary
                                  return (Add card hand))]
 
+-- Returns the size of a hand 
 size :: Num a => Hand -> a
 size Empty = 0
 size (Add card hand) = 1 + size hand
