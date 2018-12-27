@@ -24,16 +24,14 @@ instance Arbitrary Model where
                            return Shuffle ,return Future, return Catcard,
                            return Defuse]
 
-data Hand = Empty | Add Card Hand
-            deriving (Show , Eq)
+type Hand = [Card]
 
-instance Arbitrary Hand where
-  arbitrary = frequency [(1, return Empty)
-                       , (10, do card <- arbitrary
-                                 hand <- arbitrary
-                                 return (Add card hand))]
+--instance Arbitrary Hand where
+--  arbitrary = frequency [(1, return [])
+--                       , (10, do card <- arbitrary
+  --                               hand <- arbitrary
+    --                             return (card : hand))]
 
--- Returns the size of a generic type
-size :: Num a => Hand -> a
-size Empty = 0
-size (Add card hand) = 1 + size hand
+size :: Num a => [a] -> a
+size [] = 0
+size (x:xs) = 1 + size xs

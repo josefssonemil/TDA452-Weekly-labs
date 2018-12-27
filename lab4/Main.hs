@@ -55,7 +55,7 @@ start = do putStrLn "Welcome to Exploding Kittens. Make your choice:"
 
 -- Prints a player hand at each new round
 printPlayerHand :: (Player,Hand) -> IO()
-printPlayerHand (_,Empty) = putStrLn "Empty hand"
+printPlayerHand (_,[]) = putStrLn "Empty hand"
 printPlayerHand (p,h) = do let x = showHand 0 h
                            let y = showHandString x
                            let str = "Its " ++ getPlayerName p ++ "s turn!"
@@ -107,7 +107,7 @@ useDefuseCard playerHands deck = do
 playCard :: Integer -> [(Player,Hand)] -> Hand -> IO()
 playCard k playerHands deck = do
       let (Card m) = retrieveCard k (snd current)
-      let removed = removeCard (Card m) (snd current)
+      let removed = removeCardIndex k (snd current)
       let (p,h): playerHands' = playerHands
       let newPlrHds = (p,removed) : playerHands'
       when (m == Favor) $ do
@@ -137,7 +137,7 @@ playCard k playerHands deck = do
         gameLoop updatedPlayHands deck
       when (m == Defuse) $ do
         let ((p1,h1) : newPlrHds') = newPlrHds
-        let newPlrHds'' = (p1, Add (Card Defuse) h1) : newPlrHds'
+        let newPlrHds'' = (p1, Card Defuse : h1) : newPlrHds'
         gameLoop newPlrHds'' deck
 
     where current = head playerHands
